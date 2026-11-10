@@ -235,6 +235,26 @@ button,select,input{font-size:max(16px,1em)}
 .bracket-score-btn{font-size:.67rem;padding:7px;margin-top:7px;width:100%}
 .bracket-champion{border:1px solid #b8f269;background:#244737;color:#b8f269;text-align:center;border-radius:10px;padding:12px;font-weight:800}
 @media(max-width:550px){.bracket-tree{gap:4px}.bracket-match{padding:5px}.bracket-team{font-size:.62rem}.bracket-match small{font-size:.53rem}.bracket-score-btn{font-size:.6rem;padding:5px}}
+</style>
+<style>
+/* #020 Host responsive court-card cleanup */
+#courtCards.courts{display:grid!important;grid-template-columns:repeat(1,minmax(0,1fr))!important;gap:14px!important;align-items:stretch}
+@media(min-width:720px){#courtCards.courts{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(min-width:1200px){#courtCards.courts{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(min-width:1750px){#courtCards.courts{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+#courtCards .ppc-court-card{min-width:0!important;height:100%;display:flex;flex-direction:column;padding:16px!important}
+#courtCards .ppc-court-card .front-match{display:grid!important;grid-template-columns:minmax(0,1fr) 25px minmax(0,1fr)!important;gap:8px!important;align-items:center!important;padding:13px 10px!important;min-width:0}
+#courtCards .ppc-court-card .front-team{display:flex!important;flex-direction:column!important;gap:11px!important;min-width:0!important}
+#courtCards .ppc-court-card .front-player{display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important}
+#courtCards .ppc-court-card .front-team.right .front-player{flex-direction:row-reverse!important;text-align:right!important}
+#courtCards .ppc-court-card .front-photo{flex:0 0 38px!important;width:38px!important;height:38px!important}
+#courtCards .ppc-court-card .front-player-name{min-width:0!important;max-width:100%!important;line-height:1.22!important}
+#courtCards .ppc-court-card .front-first{font-size:clamp(.82rem,1.25vw,1rem)!important;overflow-wrap:normal!important;word-break:normal!important;hyphens:none!important;white-space:normal!important}
+#courtCards .ppc-court-card .front-last{font-size:clamp(.68rem,1vw,.78rem)!important;overflow-wrap:normal!important;word-break:normal!important;hyphens:none!important}
+#courtCards .ppc-court-card .front-versus{color:#b8f269!important;align-self:center!important;justify-self:center!important}
+#courtCards .ppc-court-card .court-open{margin-top:auto!important;min-height:52px!important}
+#courtCards .ppc-court-card .front-match{margin-bottom:14px!important}
+@media(max-width:400px){#courtCards .ppc-court-card .front-match{gap:4px!important;padding:10px 5px!important}#courtCards .ppc-court-card .front-photo{width:32px!important;height:32px!important;flex-basis:32px!important}#courtCards .ppc-court-card .front-player{gap:5px!important}}
 </style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div></header>
 <nav class="navtabs" aria-label="PPC views"><button type="button" data-view="live" class="active" aria-pressed="true">Live</button><button type="button" data-view="leaderboard" aria-pressed="false">Leaderboard</button><button type="button" data-view="display" aria-pressed="false">Display</button><button type="button" data-view="setup" aria-pressed="false">Setup</button></nav><div class="controls" id="liveControls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next Wave</button><span id="waveReady" role="status" aria-live="polite"></span></div>

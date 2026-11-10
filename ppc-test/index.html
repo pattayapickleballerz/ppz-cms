@@ -255,6 +255,21 @@ button,select,input{font-size:max(16px,1em)}
 #courtCards .ppc-court-card .court-open{margin-top:auto!important;min-height:52px!important}
 #courtCards .ppc-court-card .front-match{margin-bottom:14px!important}
 @media(max-width:400px){#courtCards .ppc-court-card .front-match{gap:4px!important;padding:10px 5px!important}#courtCards .ppc-court-card .front-photo{width:32px!important;height:32px!important;flex-basis:32px!important}#courtCards .ppc-court-card .front-player{gap:5px!important}}
+</style><style>
+/* #024 Connected top-six playoff tree, preserves score entry and byes */
+.ppc-playoff-scroll{width:100%;overflow-x:auto;overscroll-behavior-x:contain;padding:8px 0 14px}
+.ppc-playoff-tree{position:relative;min-width:840px;height:470px;color:#fff}
+.ppc-tree-heading{position:absolute;top:0;margin:0;text-align:center;font-size:.76rem;letter-spacing:.06em;color:#b8f269}
+.ppc-h0{left:0;width:22%}.ppc-h1{left:28%;width:22%}.ppc-h2{left:56%;width:22%}.ppc-h3{left:83%;width:17%}
+.ppc-tree-lines{position:absolute;left:0;top:38px;width:100%;height:420px;pointer-events:none;overflow:visible}
+.ppc-tree-lines path{fill:none;stroke:#5795a4;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ppc-playoff-tree .ppc-tree-node{position:absolute;width:22%;min-height:115px;z-index:1;padding:10px}
+.ppc-tree-node.ppc-q0{left:0;top:85px}.ppc-tree-node.ppc-q1{left:0;top:295px}
+.ppc-tree-node.ppc-s0{left:28%;top:125px}.ppc-tree-node.ppc-s1{left:28%;top:255px}
+.ppc-tree-node.ppc-f0{left:56%;top:190px}
+.ppc-tree-champion{position:absolute;left:83%;top:188px;width:17%;min-height:90px;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere;font-size:.8rem}
+.ppc-tree-node .bracket-team{font-size:.82rem;padding:7px 2px}
+.ppc-tree-node .bracket-score-btn{margin-top:7px}
 </style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div></header>
 <nav class="navtabs" aria-label="PPC views"><button type="button" data-view="live" class="active" aria-pressed="true">Live</button><button type="button" data-view="leaderboard" aria-pressed="false">Leaderboard</button><button type="button" data-view="display" aria-pressed="false">Display</button><button type="button" data-view="setup" aria-pressed="false">Setup</button></nav><div class="controls" id="liveControls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next Wave</button><span id="waveReady" role="status" aria-live="polite"></span></div>
@@ -375,9 +390,12 @@ function renderBracket(){
  const s=skill,cat=CATEGORIES[Number($('bracketCategory').value)],root=$('bracketView');root.replaceChildren();
  const data=bracketFor(s,cat);
  if(!data){const p=document.createElement('p');p.className='notice';p.textContent='Playoff bracket unlocks when all 24 round-robin results in '+cat+' are entered for '+s+'.';root.append(p);return}
- const tree=document.createElement('div');tree.className='bracket-tree';
- for(const [stage,label] of [['q','QUARTERFINALS'],['s','SEMIFINALS'],['f','FINAL']]){const col=document.createElement('div');col.className='bracket-column';const heading=document.createElement('h3');heading.textContent=label;col.append(heading);data[stage].forEach((pair,i)=>col.append(playoffMatchCard(s,cat,stage,i,pair)));tree.append(col)}
- root.append(tree);const champion=document.createElement('div');champion.className='bracket-champion';champion.textContent=data.champion?'🏆 CHAMPION · '+teamLabel(data.champion):'🏆 Champion awaiting final';root.append(champion)
+ const scroll=document.createElement('div');scroll.className='ppc-playoff-scroll';const tree=document.createElement('div');tree.className='ppc-playoff-tree';
+ const headings=['QUARTERFINALS','SEMIFINALS','FINAL','CHAMPION'];headings.forEach((label,i)=>{const h=document.createElement('h3');h.className='ppc-tree-heading ppc-h'+i;h.textContent=label;tree.append(h)});
+ const lines=document.createElementNS('http://www.w3.org/2000/svg','svg');lines.setAttribute('class','ppc-tree-lines');lines.setAttribute('viewBox','0 0 1000 420');lines.setAttribute('preserveAspectRatio','none');lines.setAttribute('aria-hidden','true');
+ for(const d of ['M222 105 H255 V145 H280','M222 315 H255 V275 H280','M502 145 H535 V210 H560','M502 275 H535 V210','M782 210 H815']){const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',d);lines.append(p)}tree.append(lines);
+ for(const [stage,positions] of [['q',['q0','q1']],['s',['s0','s1']],['f',['f0']]])data[stage].forEach((pair,i)=>{const card=playoffMatchCard(s,cat,stage,i,pair);card.classList.add('ppc-tree-node','ppc-'+positions[i]);tree.append(card)});
+ const champion=document.createElement('div');champion.className='bracket-champion ppc-tree-champion';champion.textContent=data.champion?'🏆 CHAMPION · '+teamLabel(data.champion):'🏆 Awaiting Champion';tree.append(champion);scroll.append(tree);root.append(scroll)
 }
 function updateDisplayMode(){const bracket=$('displayMode').value==='bracket';$('displayPreviewMatches').classList.toggle('tab-hidden',bracket);$('bracketView').classList.toggle('tab-hidden',!bracket);if(bracket)renderBracket();else renderDisplayPreview()}
 opt($('bracketCategory'),CATEGORIES);$('displayMode').onchange=updateDisplayMode;$('bracketCategory').onchange=renderBracket;

@@ -224,7 +224,7 @@ button,select,input{font-size:max(16px,1em)}
 .roster-grid input:not([type=checkbox]),.roster-grid select,.roster-field input{width:100%;min-width:0}
 .roster-row{display:block;width:100%;text-align:left;margin:5px 0;font-size:.76rem;padding:9px}
 #rosterStatus{margin-left:10px;color:#b8f269;font-size:.8rem}
-</style></head><body>
+</style><style>.roster-player-heading{font-weight:800;color:#b8f269;margin-top:14px;font-size:.85rem}.roster-grid input{font-size:16px}</style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div></header>
 <nav class="navtabs" aria-label="PPC views"><button type="button" data-view="live" class="active" aria-pressed="true">Live</button><button type="button" data-view="leaderboard" aria-pressed="false">Leaderboard</button><button type="button" data-view="display" aria-pressed="false">Display</button><button type="button" data-view="setup" aria-pressed="false">Setup</button></nav><div class="controls" id="liveControls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next Wave</button><span id="waveReady" role="status" aria-live="polite"></span></div>
 <section id="timerSection" class="wave-timer" aria-label="Tournament wave timer">
@@ -242,7 +242,7 @@ button,select,input{font-size:max(16px,1em)}
 <p class="muted">Register teams in each category. Names are saved locally on this device and appear on the court cards.</p>
 <div class="roster-grid"><label>Skill <select id="rosterSkill"></select></label><label>Category <select id="rosterCategory"></select></label><label>Team Slot <select id="rosterSlot"></select></label></div>
 <label class="roster-field">Team Name <input id="rosterTeamName" placeholder="e.g. Team Aces" maxlength="60"></label>
-<div class="roster-grid"><label>Player 1 <input id="rosterPlayer1" placeholder="First name" maxlength="60"></label><label>Player 2 <input id="rosterPlayer2" placeholder="First name" maxlength="60"></label></div>
+<div class="roster-player-heading">Player 1</div><div class="roster-grid"><label>First Name <input id="rosterPlayer1" placeholder="Alex" maxlength="60"></label><label>Last Name <input id="rosterLast1" placeholder="Morgan" maxlength="60"></label></div><div class="roster-player-heading">Player 2</div><div class="roster-grid"><label>First Name <input id="rosterPlayer2" placeholder="Jamie" maxlength="60"></label><label>Last Name <input id="rosterLast2" placeholder="Chen" maxlength="60"></label></div>
 <div class="roster-grid"><label><input type="checkbox" id="rosterPaid"> Paid</label><label><input type="checkbox" id="rosterChecked"> Checked In</label></div>
 <button type="button" id="rosterSave">Save Team</button><span id="rosterStatus" role="status"></span>
 <div id="rosterList"></div></details>
@@ -264,7 +264,9 @@ const teams=skill=>Object.fromEntries(CATEGORIES.map(category=>[category,Array.f
 const rosterKey='ppc_demo_team_roster_v1';let roster={};try{roster=JSON.parse(localStorage.getItem(rosterKey)||'{}')}catch{}
 const teamRecord=id=>roster[id]||null;
 const teamLabel=id=>teamRecord(id)?.name?.trim()||'Team '+((id.match(/Team (\d+)$/)||[])[1]||'?');
-const playerLabel=(id,index)=>teamRecord(id)?.players?.[index]?.trim()||'Player '+(index+1);
+const playerParts=(id,index)=>{const p=teamRecord(id)?.players?.[index];if(p&&typeof p==='object')return {first:String(p.first||'').trim(),last:String(p.last||'').trim()};const name=typeof p==='string'?p.trim():'';const pos=name.indexOf(' ');return {first:pos<0?name:name.slice(0,pos),last:pos<0?'':name.slice(pos+1)}};
+const playerLabel=(id,index)=>playerParts(id,index).first||'Player '+(index+1);
+const playerFullName=(id,index)=>{const p=playerParts(id,index);return [p.first,p.last].filter(Boolean).join(' ')||'Player '+(index+1)};
 function saveRoster(){localStorage.setItem(rosterKey,JSON.stringify(roster))}
 
 const schedules=Object.fromEntries(SKILLS.map(s=>{const t=teams(s),waves=scheduleSkillBlock(t);validateSchedule(waves,t);return [s,waves]}));
@@ -322,23 +324,23 @@ opt($('skill'),SKILLS);opt($('category'),CATEGORIES);
 function rosterTeamId(){return teams(SKILLS[Number($('rosterSkill').value)])[CATEGORIES[Number($('rosterCategory').value)]][Number($('rosterSlot').value)]}
 function loadRosterForm(){
  const id=rosterTeamId(),r=roster[id]||{};
- $('rosterTeamName').value=r.name||'';$('rosterPlayer1').value=r.players?.[0]||'';$('rosterPlayer2').value=r.players?.[1]||'';
+ $('rosterTeamName').value=r.name||'';$('rosterPlayer1').value=playerParts(id,0).first;$('rosterLast1').value=playerParts(id,0).last;$('rosterPlayer2').value=playerParts(id,1).first;$('rosterLast2').value=playerParts(id,1).last;
  $('rosterPaid').checked=!!r.paid;$('rosterChecked').checked=!!r.checked;renderRosterList()
 }
 function renderRosterList(){
  const s=SKILLS[Number($('rosterSkill').value)],cat=CATEGORIES[Number($('rosterCategory').value)];
  const list=$('rosterList');list.replaceChildren();
- teams(s)[cat].forEach((id,i)=>{const b=document.createElement('button');b.type='button';b.className='roster-row';b.textContent=(i+1)+'. '+teamLabel(id)+' · '+playerLabel(id,0)+' / '+playerLabel(id,1)+(roster[id]?.paid?' · Paid':'')+(roster[id]?.checked?' · Checked in':'');b.onclick=()=>{$('rosterSlot').value=String(i);loadRosterForm()};list.append(b)})
+ teams(s)[cat].forEach((id,i)=>{const b=document.createElement('button');b.type='button';b.className='roster-row';b.textContent=(i+1)+'. '+teamLabel(id)+' · '+playerFullName(id,0)+' / '+playerFullName(id,1)+(roster[id]?.paid?' · Paid':'')+(roster[id]?.checked?' · Checked in':'');b.onclick=()=>{$('rosterSlot').value=String(i);loadRosterForm()};list.append(b)})
 }
 opt($('rosterSkill'),SKILLS);opt($('rosterCategory'),CATEGORIES);opt($('rosterSlot'),Array.from({length:8},(_,i)=>'Team '+(i+1)));
 for(const id of ['rosterSkill','rosterCategory','rosterSlot'])$(id).onchange=loadRosterForm;
 $('rosterSave').onclick=()=>{
- const id=rosterTeamId(),name=$('rosterTeamName').value.trim(),a=$('rosterPlayer1').value.trim(),b=$('rosterPlayer2').value.trim();
- if(!name||!a||!b){$('rosterStatus').textContent='Enter a team name and both player names.';return}
- if(a.toLowerCase()===b.toLowerCase()){$('rosterStatus').textContent='Choose two different players.';return}
+ const id=rosterTeamId(),name=$('rosterTeamName').value.trim(),a=$('rosterPlayer1').value.trim(),al=$('rosterLast1').value.trim(),b=$('rosterPlayer2').value.trim(),bl=$('rosterLast2').value.trim();
+ if(!name||!a||!al||!b||!bl){$('rosterStatus').textContent='Enter a team name and first and last names for both players.';return}
+ if((a+' '+al).toLowerCase()===(b+' '+bl).toLowerCase()){$('rosterStatus').textContent='Choose two different players.';return}
  const skill=SKILLS[Number($('rosterSkill').value)],cat=CATEGORIES[Number($('rosterCategory').value)];
  if(teams(skill)[cat].some(other=>other!==id&&roster[other]?.name?.toLowerCase()===name.toLowerCase())){$('rosterStatus').textContent='Team name already exists in this category.';return}
- roster[id]={name,players:[a,b],paid:$('rosterPaid').checked,checked:$('rosterChecked').checked};saveRoster();$('rosterStatus').textContent='✓ Saved on this device';renderRosterList();render()
+ roster[id]={name,players:[{first:a,last:al},{first:b,last:bl}],paid:$('rosterPaid').checked,checked:$('rosterChecked').checked};saveRoster();$('rosterStatus').textContent='✓ Saved on this device';renderRosterList();render()
 };
 loadRosterForm();
 function render(){

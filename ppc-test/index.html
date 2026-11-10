@@ -224,7 +224,18 @@ button,select,input{font-size:max(16px,1em)}
 .roster-grid input:not([type=checkbox]),.roster-grid select,.roster-field input{width:100%;min-width:0}
 .roster-row{display:block;width:100%;text-align:left;margin:5px 0;font-size:.76rem;padding:9px}
 #rosterStatus{margin-left:10px;color:#b8f269;font-size:.8rem}
-</style><style>.roster-player-heading{font-weight:800;color:#b8f269;margin-top:14px;font-size:.85rem}.roster-grid input{font-size:16px}</style></head><body>
+</style><style>.roster-player-heading{font-weight:800;color:#b8f269;margin-top:14px;font-size:.85rem}.roster-grid input{font-size:16px}</style><style>
+.bracket-tree{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0;align-items:center}
+.bracket-column{display:flex;flex-direction:column;justify-content:space-around;gap:12px;min-width:0}
+.bracket-column h3{font-size:.7rem;letter-spacing:.06em;color:#b8f269;text-align:center;margin:0}
+.bracket-match{background:#1c3449;border:1px solid #4a697b;border-radius:9px;padding:8px;min-width:0}
+.bracket-match small{display:block;font-size:.58rem;color:#aabdd0;margin-bottom:7px}
+.bracket-team{font-size:.7rem;overflow-wrap:anywhere;padding:7px 2px;border-bottom:1px solid #3b5368}
+.bracket-winner{color:#b8f269;font-weight:800}
+.bracket-score-btn{font-size:.67rem;padding:7px;margin-top:7px;width:100%}
+.bracket-champion{border:1px solid #b8f269;background:#244737;color:#b8f269;text-align:center;border-radius:10px;padding:12px;font-weight:800}
+@media(max-width:550px){.bracket-tree{gap:4px}.bracket-match{padding:5px}.bracket-team{font-size:.62rem}.bracket-match small{font-size:.53rem}.bracket-score-btn{font-size:.6rem;padding:5px}}
+</style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div></header>
 <nav class="navtabs" aria-label="PPC views"><button type="button" data-view="live" class="active" aria-pressed="true">Live</button><button type="button" data-view="leaderboard" aria-pressed="false">Leaderboard</button><button type="button" data-view="display" aria-pressed="false">Display</button><button type="button" data-view="setup" aria-pressed="false">Setup</button></nav><div class="controls" id="liveControls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next Wave</button><span id="waveReady" role="status" aria-live="polite"></span></div>
 <section id="timerSection" class="wave-timer" aria-label="Tournament wave timer">
@@ -236,7 +247,7 @@ button,select,input{font-size:max(16px,1em)}
 <section id="courts"><h2>11-Court Dashboard <small style="font-size:.65rem;color:#b8f269">Build PPC-12.1</small></h2><p id="courtDiagnostics" style="font-size:.78rem;color:#f3d67a">Checking court navigation…</p><p class="notice">Score entry is for local functional testing. In production, scorekeepers will submit results for host approval. At 15 minutes, finish the rally; if tied, play a sudden-death point.</p><div class="court-jump-bar"><span class="court-jump-title">JUMP TO COURT</span><div class="court-jump-legend"><span><b style="background:#a72e42"></b>Pending</span><span><b style="background:#227c50"></b>Scored</span><span><b style="background:#33495a"></b>Empty</span></div></div><div class="court-jump" id="courtJump" aria-label="Jump to court"></div><div class="courts" id="courtCards"></div></section>
 <div class="back-to-top-wrap" aria-label="After Court 11"><button class="back-to-top" id="backToTop" type="button">↑ Back to Top</button></div>
 <section id="standings"><h2>Category Standings</h2><label>Category <select id="category"></select></label><div id="standingsTable"></div></section>
-<section id="displayView" class="display-preview tab-hidden"><h2>PPC Display Preview</h2><p class="muted">Read-only local preview of the current wave. Multi-device sharing is not active yet.</p><div id="displayPreviewMatches" class="preview-list"></div></section>
+<section id="displayView" class="display-preview tab-hidden"><h2>PPC Display</h2><p class="muted">Local demo preview; not synchronized across devices.</p><div class="roster-grid"><label>View <select id="displayMode"><option value="courts">Courts</option><option value="bracket">Playoff Bracket</option></select></label><label>Category <select id="bracketCategory"></select></label></div><div id="displayPreviewMatches" class="preview-list"></div><div id="bracketView" class="tab-hidden"></div></section>
 <section id="setupView" class="setup-panel tab-hidden"><h2>Tournament Setup</h2>
 <details class="setup-details"><summary>Players &amp; Teams</summary>
 <p class="muted">Register teams in each category. Names are saved locally on this device and appear on the court cards.</p>
@@ -304,6 +315,48 @@ setInterval(paintTimer,250);
 
 // Top navigation switches real sections rather than following placeholder anchors.
 let activeView='live';
+const playoffStore='ppc_demo_playoff_results_v1';let playoffResults={};try{playoffResults=JSON.parse(localStorage.getItem(playoffStore)||'{}')}catch{}
+const playoffKey=(s,cat,stage,index)=>[s,cat,stage,index].join('|');
+function standingsFor(s,cat){
+ const map=new Map(teams(s)[cat].map(t=>[t,{team:t,points:0,against:0,wins:0,played:0}]));
+ for(const m of schedules[s].flat().filter(x=>x.category===cat)){
+  const score=results[[s,m.category,m.round,m.teamA,m.teamB].join('|')];if(!score)continue;
+  const a=map.get(m.teamA),b=map.get(m.teamB);a.points+=score[0];a.against+=score[1];b.points+=score[1];b.against+=score[0];a.wins+=Number(score[0]>score[1]);b.wins+=Number(score[1]>score[0]);a.played++;b.played++;
+ }
+ return [...map.values()].sort((a,b)=>b.points-a.points||(b.points-b.against)-(a.points-a.against)||b.wins-a.wins||a.team.localeCompare(b.team))
+}
+function bracketFor(s,cat){
+ const matches=schedules[s].flat().filter(m=>m.category===cat);
+ if(matches.some(m=>!results[[s,m.category,m.round,m.teamA,m.teamB].join('|')]))return null;
+ const seeds=standingsFor(s,cat).map(x=>x.team);
+ const get=(stage,i)=>playoffResults[playoffKey(s,cat,stage,i)];
+ const win=(a,b,score)=>a&&b&&score?(score[0]>score[1]?a:b):null;
+ const q1=[seeds[3],seeds[4]],q2=[seeds[2],seeds[5]];
+ const s1=[seeds[0],win(...q1,get('q',0))],s2=[seeds[1],win(...q2,get('q',1))];
+ const final=[win(...s1,get('s',0)),win(...s2,get('s',1))];
+ return {q:[q1,q2],s:[s1,s2],f:[final],champion:win(...final,get('f',0))}
+}
+function playoffMatchCard(s,cat,stage,index,pair){
+ const box=document.createElement('div');box.className='bracket-match';
+ const title=document.createElement('small');title.textContent=stage==='q'?'Quarterfinal '+(index+1)+' · First to 11':stage==='s'?'Semifinal '+(index+1)+' · First to 15':'Championship · First to 15';box.append(title);
+ const score=playoffResults[playoffKey(s,cat,stage,index)];
+ for(let i=0;i<2;i++){const row=document.createElement('div');row.className='bracket-team';row.textContent=(pair[i]?teamLabel(pair[i]):'Awaiting winner')+(score?'  '+score[i]:'');if(score&&pair[i]&&score[i]>score[1-i])row.classList.add('bracket-winner');box.append(row)}
+ if(pair.every(Boolean)){const btn=document.createElement('button');btn.textContent=score?'Edit Result':'Enter Result';btn.className='bracket-score-btn';btn.onclick=()=>{const target=stage==='q'?11:15;const a=prompt('Score for '+teamLabel(pair[0])+' (0–'+target+')',score?.[0]??'');if(a===null)return;const b=prompt('Score for '+teamLabel(pair[1])+' (0–'+target+')',score?.[1]??'');if(b===null)return;const x=Number(a),y=Number(b);if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>target||y>target||x===y||Math.max(x,y)!==target){alert('Enter valid scores: first to '+target+', win by 1.');return}
+ const k=playoffKey(s,cat,stage,index);if(score&&(score[0]!==x||score[1]!==y)&&stage!=='f'&&!confirm('Changing this result will clear any later playoff results in this category. Continue?'))return;
+ playoffResults[k]=[x,y];if(stage==='q'){delete playoffResults[playoffKey(s,cat,'s',index)];delete playoffResults[playoffKey(s,cat,'f',0)]}if(stage==='s')delete playoffResults[playoffKey(s,cat,'f',0)];
+ localStorage.setItem(playoffStore,JSON.stringify(playoffResults));renderBracket()};box.append(btn)}
+ return box
+}
+function renderBracket(){
+ const s=skill,cat=CATEGORIES[Number($('bracketCategory').value)],root=$('bracketView');root.replaceChildren();
+ const data=bracketFor(s,cat);
+ if(!data){const p=document.createElement('p');p.className='notice';p.textContent='Playoff bracket unlocks when all 24 round-robin results in '+cat+' are entered for '+s+'.';root.append(p);return}
+ const tree=document.createElement('div');tree.className='bracket-tree';
+ for(const [stage,label] of [['q','QUARTERFINALS'],['s','SEMIFINALS'],['f','FINAL']]){const col=document.createElement('div');col.className='bracket-column';const heading=document.createElement('h3');heading.textContent=label;col.append(heading);data[stage].forEach((pair,i)=>col.append(playoffMatchCard(s,cat,stage,i,pair)));tree.append(col)}
+ root.append(tree);const champion=document.createElement('div');champion.className='bracket-champion';champion.textContent=data.champion?'🏆 CHAMPION · '+teamLabel(data.champion):'🏆 Champion awaiting final';root.append(champion)
+}
+function updateDisplayMode(){const bracket=$('displayMode').value==='bracket';$('displayPreviewMatches').classList.toggle('tab-hidden',bracket);$('bracketView').classList.toggle('tab-hidden',!bracket);if(bracket)renderBracket();else renderDisplayPreview()}
+opt($('bracketCategory'),CATEGORIES);$('displayMode').onchange=updateDisplayMode;$('bracketCategory').onchange=renderBracket;
 function renderDisplayPreview(){
  const box=$('displayPreviewMatches');box.replaceChildren();
  const wave=schedules[skill][waveIndex];
@@ -315,7 +368,7 @@ function setView(view){
  const visibility={live:['liveControls','timerSection','summaryStats','courts'],leaderboard:['standings'],display:['displayView'],setup:['setupView']};
  for(const id of ['liveControls','timerSection','summaryStats','courts','standings','displayView','setupView'])$(id).classList.toggle('tab-hidden',!visibility[view].includes(id));
  document.querySelectorAll('.navtabs button').forEach(b=>{const selected=b.dataset.view===view;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected))});
- if(view==='display')renderDisplayPreview();
+ if(view==='display')updateDisplayMode();
 }
 document.querySelectorAll('.navtabs button').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 

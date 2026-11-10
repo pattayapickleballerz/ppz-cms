@@ -99,7 +99,26 @@ section{margin:24px 0}.notice{color:#ffd58a}.empty{color:#b6c9d2;padding:20px 0}
 .court-jump{display:grid!important;grid-template-columns:repeat(11,minmax(0,1fr))!important;gap:5px!important;width:100%!important;overflow:visible!important}
 .court-jump button{width:100%!important;min-width:0!important;height:42px!important;flex:none!important;padding:0!important;font-size:clamp(.7rem,1.5vw,1rem)!important}
 @media(max-width:600px){.court-jump{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding-bottom:5px;-webkit-overflow-scrolling:touch}.court-jump button{flex:0 0 42px!important;width:42px!important;scroll-snap-align:start}.court-jump::-webkit-scrollbar{height:3px}}
-</style><style>.back-to-top-wrap{display:flex;justify-content:center;margin:18px 0 24px}.back-to-top{background:#243f54;border:1px solid #628597;color:#fff;font-weight:800;padding:13px 25px;border-radius:12px;min-height:48px}.back-to-top:focus-visible{outline:3px solid #f3cf6b;outline-offset:2px}</style></head><body>
+</style><style>.back-to-top-wrap{display:flex;justify-content:center;margin:18px 0 24px}.back-to-top{background:#243f54;border:1px solid #628597;color:#fff;font-weight:800;padding:13px 25px;border-radius:12px;min-height:48px}.back-to-top:focus-visible{outline:3px solid #f3cf6b;outline-offset:2px}</style><style>
+/* Keep PPC dashboard anchored horizontally on phones/tablets. */
+html,body{width:100%;max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
+body{touch-action:pan-y;overflow-wrap:break-word}
+header,.controls,.stats,.courts,.court-jump-bar,.wave-timer,section,.scorepanel{max-width:100%;min-width:0}
+.courts>*{min-width:0}
+.court-jump{touch-action:pan-x!important;max-width:100%}
+.scoremodal{overscroll-behavior:contain}
+.scorepanel{overscroll-behavior:contain;overflow-x:hidden}
+button,select,input{font-size:max(16px,1em)}
+@media(max-width:600px){
+  body{padding:10px}
+  .wave-clock{font-size:clamp(66px,17vw,105px)!important;letter-spacing:-.065em!important}
+  .wave-actions button{min-width:0;flex:1 1 auto}
+  .court-art{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr)}
+  .court-side{min-width:0;padding:7px}
+  .court-side .player{min-width:0;overflow-wrap:anywhere}
+  .scorepanel{padding:12px}
+}
+</style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div><button id="reset">Reset demo scores</button></header>
 <nav class="navtabs"><a href="#courts">Live Courts</a><a href="#standings">Leaderboard</a><a href="#standings">Display Preview</a><a href="#settings">Setup</a></nav><div class="controls" id="settings"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>
 <section class="wave-timer" aria-label="Tournament wave timer">

@@ -153,6 +153,12 @@ button,select,input{font-size:max(16px,1em)}
 #summaryStats .stat strong{font-size:clamp(1.05rem,3vw,1.5rem)!important;line-height:1.1!important}
 #summaryStats .stat-label{font-size:clamp(.6rem,1.6vw,.72rem)!important;line-height:1.2!important}
 @media(max-width:600px){#summaryStats .stat{min-height:62px!important;padding:7px 4px!important}}
+</style><style>
+/* Four concise progress counters on one row, including mobile */
+#summaryStats.stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;margin:8px 0 12px!important}
+#summaryStats .stat{min-width:0!important;min-height:62px!important;padding:9px 2px!important;gap:3px!important;border-radius:9px!important;align-items:center!important;justify-content:center!important;text-align:center!important}
+#summaryStats .stat strong{font-size:clamp(.92rem,3.3vw,1.5rem)!important;white-space:nowrap!important;text-align:center!important}
+#summaryStats .stat-label{font-size:clamp(.57rem,1.7vw,.75rem)!important;line-height:1.15!important;text-align:center!important}
 </style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div></header>
 <nav class="navtabs" aria-label="PPC views"><button type="button" data-view="live" class="active" aria-pressed="true">Live</button><button type="button" data-view="leaderboard" aria-pressed="false">Leaderboard</button><button type="button" data-view="display" aria-pressed="false">Display</button><button type="button" data-view="setup" aria-pressed="false">Setup</button></nav><div class="controls" id="liveControls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>

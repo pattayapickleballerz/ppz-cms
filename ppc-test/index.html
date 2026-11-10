@@ -132,13 +132,13 @@ button,select,input{font-size:max(16px,1em)}
 .display-preview h2{margin:0 0 12px}.display-preview .preview-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
 .display-preview .preview-match{background:#19394d;padding:11px;border-radius:9px;font-size:.82rem}
 @media(max-width:480px){.navtabs button{padding:11px 2px;font-size:.72rem}.brandmark{padding:9px!important}.reset-small{font-size:.68rem!important}}
-</style></head><body>
+</style><style>#timerReset{min-width:0!important;padding:7px 10px!important;font-size:.75rem!important;font-weight:600!important;opacity:.8}#timerReset:hover{opacity:1}</style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div></header>
 <nav class="navtabs" aria-label="PPC views"><button type="button" data-view="live" class="active" aria-pressed="true">Live</button><button type="button" data-view="leaderboard" aria-pressed="false">Leaderboard</button><button type="button" data-view="display" aria-pressed="false">Display</button><button type="button" data-view="setup" aria-pressed="false">Setup</button></nav><div class="controls" id="liveControls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>
 <section id="timerSection" class="wave-timer" aria-label="Tournament wave timer">
 <div class="wave-top"><span id="timerWaveLabel">BEGINNER · WAVE 1</span><span>11 COURTS</span></div>
 <div id="waveClock" class="wave-clock" role="timer">15:00</div><div class="wave-label">WAVE COUNTDOWN</div>
-<div class="wave-actions"><button id="timerToggle" type="button">▶ Start</button><button id="timerReset" type="button">↺ Reset Wave</button><button id="timerSound" type="button">♪ Test Bell</button></div>
+<div class="wave-actions"><button id="timerToggle" type="button">▶ Start</button><button id="timerReset" type="button">↺ Reset Timer</button><button id="timerSound" type="button">♪ Test Bell</button></div>
 <div class="wave-footer"><div><small>GAMES MANAGED</small><strong id="gamesManaged">0 / 216</strong></div><div><small>SESSION ELAPSED</small><strong id="sessionElapsed">00:00:00</strong></div></div>
 </section><div id="summaryStats" class="stats"><div class="stat"><strong id="total">72</strong>Matches in skill block</div><div class="stat"><strong id="complete">0</strong>Results entered</div><div class="stat"><strong id="current">1</strong>Current wave</div><div class="stat"><strong>11</strong>Courts available</div></div>
 <section id="courts"><h2>11-Court Dashboard <small style="font-size:.65rem;color:#b8f269">Build PPC-11.4</small></h2><p id="courtDiagnostics" style="font-size:.78rem;color:#f3d67a">Checking court navigation…</p><p class="notice">Score entry is for local functional testing. In production, scorekeepers will submit results for host approval. At 15 minutes, finish the rally; if tied, play a sudden-death point.</p><div class="court-jump-bar"><span class="court-jump-title">JUMP TO COURT</span><div class="court-jump-legend"><span><b style="background:#a72e42"></b>Pending</span><span><b style="background:#227c50"></b>Scored</span><span><b style="background:#33495a"></b>Empty</span></div></div><div class="court-jump" id="courtJump" aria-label="Jump to court"></div><div class="courts" id="courtCards"></div></section>
@@ -179,7 +179,7 @@ function paintTimer(){
 function switchTimerWave(){syncTimer();timerState.running=false;timerState.remaining=TIMER_LENGTH;timerState.waveKey=waveKey();timerState.updated=Date.now();bellPlayed=false;paintTimer()}
 function playBell(){try{const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;const ctx=new Ctx();for(const [i,freq] of [660,880,660].entries()){const o=ctx.createOscillator(),g=ctx.createGain(),start=ctx.currentTime+i*.22;o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(.18,start+.025);g.gain.exponentialRampToValueAtTime(.0001,start+.4);o.connect(g);g.connect(ctx.destination);o.start(start);o.stop(start+.42)}setTimeout(()=>ctx.close(),1600)}catch{}}
 $('timerToggle').onclick=()=>{syncTimer();if(timerState.remaining<=0){alert('Wave time is over. Reset the wave timer to start again.');return}timerState.running=!timerState.running;timerState.updated=Date.now();paintTimer()};
-$('timerReset').onclick=()=>{if(confirm('Reset this wave to 15:00?'))switchTimerWave()};
+$('timerReset').onclick=()=>{if(confirm('Reset the countdown timer to 15:00?'))switchTimerWave()};
 $('timerSound').onclick=playBell;
 setInterval(paintTimer,250);
 

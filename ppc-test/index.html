@@ -37,7 +37,7 @@ section{margin:24px 0}.notice{color:#ffd58a}.empty{color:#b6c9d2;padding:20px 0}
 .keypad button{min-height:64px;background:#263447!important}
 .complete{background:#f3cb50!important;color:#192433!important}
 .scorehint{color:#e6a8a8!important}
-</style></head><body>
+</style><style>.scoreteam.winner-highlight{border:3px solid #b8f269!important;background:#275b44!important;box-shadow:0 0 0 3px #b8f26955,0 0 25px #a8ed6866!important}.court-side.winner-highlight{background:#28654b!important;box-shadow:inset 0 0 0 4px #b8f269!important}.court-side.winner-highlight .player{color:#fff}.winpick.winner-highlight{background:#b8f269!important;color:#0c3024!important}.scoreteam.winner-highlight strong{color:#b8f269!important}</style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div><button id="reset">Reset demo scores</button></header>
 <nav class="navtabs"><a href="#courts">Live Courts</a><a href="#standings">Leaderboard</a><a href="#standings">Display Preview</a><a href="#settings">Setup</a></nav><div class="controls" id="settings"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>
 <div class="stats"><div class="stat"><strong id="total">72</strong>Matches in skill block</div><div class="stat"><strong id="complete">0</strong>Results entered</div><div class="stat"><strong id="current">1</strong>Current wave</div><div class="stat"><strong>11</strong>Courts available</div></div>
@@ -74,12 +74,12 @@ function render(){
  }renderStandings();
 }
 let editing=null,activeTeam=0,draft=[0,0],selectedWinner=null;
-function showScores(){for(let i=0;i<2;i++){$('score'+i).textContent=draft[i];$('team'+i).classList.toggle('active',activeTeam===i)}for(let i=0;i<2;i++)$('win'+(i===0?'A':'B')).textContent=selectedWinner===i?'✓ Winner':'Win'}
+function showScores(){const winner=selectedWinner!==null?selectedWinner:(draft[0]!==draft[1]&&Math.max(...draft)>0?(draft[0]>draft[1]?0:1):null);for(let i=0;i<2;i++){$('score'+i).textContent=draft[i];$('team'+i).classList.toggle('active',activeTeam===i);$('team'+i).classList.toggle('winner-highlight',winner===i)}for(let i=0;i<2;i++){const w=$('win'+(i===0?'A':'B'));w.textContent=winner===i?'✓ Winner':'Win';w.classList.toggle('winner-highlight',winner===i)}document.querySelectorAll('.court-side').forEach((el,i)=>el.classList.toggle('winner-highlight',winner===i))}
 function openScore(match,court){editing=match;selectedWinner=null;activeTeam=0;draft=[...(results[key(match)]||[0,0])];$('modalcourt').textContent='Court '+court;$('modalcategory').textContent=match.category+' · Round '+match.round;$('name0').textContent=match.teamA;$('name1').textContent=match.teamB;$('playerA1').textContent=match.teamA;$('playerB1').textContent=match.teamB;$('playerA2').textContent='Fixed doubles team';$('playerB2').textContent='Fixed doubles team';showScores();$('scoremodal').classList.add('show')}
 function closeScore(){$('scoremodal').classList.remove('show');editing=null}
 $('closemodal').onclick=closeScore;$('cancelmodal').onclick=closeScore;
 for(let i=0;i<2;i++)$('team'+i).onclick=()=>{activeTeam=i;selectedWinner=null;showScores()};
-for(const val of [0,1,2,3,4,5,6,7,8,9]){const b=document.createElement('button');b.type='button';b.textContent=val;b.onclick=()=>{const s=String(draft[activeTeam]);draft[activeTeam]=Math.min(11,Number((draft[activeTeam]===0?'':s)+val));showScores()};$('keypad').append(b)}
+for(const val of [0,1,2,3,4,5,6,7,8,9]){const b=document.createElement('button');b.type='button';b.textContent=val;b.onclick=()=>{const s=String(draft[activeTeam]);draft[activeTeam]=Math.min(11,Number((draft[activeTeam]===0?'':s)+val));if(selectedWinner!==null&&draft[1-selectedWinner]>=draft[selectedWinner])selectedWinner=null;showScores()};$('keypad').append(b)}
 function chooseWinner(i){selectedWinner=i;draft[i]=11;draft[1-i]=0;activeTeam=1-i;showScores()}$('winA').onclick=()=>chooseWinner(0);$('winB').onclick=()=>chooseWinner(1);
 $('clearscore').onclick=()=>{draft[activeTeam]=0;showScores()};
 $('completegame').onclick=()=>{if(!editing)return;const [a,b]=draft;if(selectedWinner!==null && draft[selectedWinner]!==11){alert('Winner must have 11 points in standard scoring. For timed results, select both score fields manually.');return}if(a===b||Math.max(a,b)===0){alert('A match must have a winner. If tied at 15 minutes, play one sudden-death point.');return}results[key(editing)]=[a,b];persist();closeScore();render()};

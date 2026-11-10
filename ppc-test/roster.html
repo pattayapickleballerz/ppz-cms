@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PPC CMS · Persistent Tournament Roster</title>
+<style>
+:root{font:16px system-ui,-apple-system,sans-serif;color:#edf7fc;background:#071b2d}*{box-sizing:border-box}body{margin:0 auto;max-width:1100px;padding:18px}header{display:flex;align-items:center;gap:14px;border-bottom:1px solid #3b6074;padding-bottom:15px}header b{font-size:28px;color:#b8f269}header small{color:#a8c3d2}h1{font-size:23px;margin:0}h2{font-size:19px;margin:0 0 12px}section{background:#132e42;border:1px solid #355b6d;border-radius:14px;padding:18px;margin:18px 0}label{display:block;color:#bdd0da;font-size:13px;margin:8px 0 4px}input,select,button{font:inherit;padding:11px;border-radius:8px;border:1px solid #567b8e;background:#0d2437;color:white;max-width:100%}input,select{width:100%}button{cursor:pointer;font-weight:700}button.primary{background:#b8f269;color:#092636;border-color:#b8f269}button:disabled{opacity:.5}button.secondary{background:#25485d}button.danger{background:#4b3036}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}.muted{color:#abc0ce}.notice{border-radius:8px;background:#203e50;padding:12px;margin:12px 0;white-space:pre-wrap}.team{padding:12px;border:1px solid #406378;border-radius:9px;margin:8px 0;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.team small{color:#a8c3d2}#app[hidden],#auth[hidden],#teamForm[hidden]{display:none}.tag{color:#b8f269;font-weight:700}a{color:#b8f269}@media(max-width:560px){body{padding:10px}section{padding:13px}}
+</style></head><body>
+<header><b>PPC</b><div><h1>TOURNAMENT ROSTER</h1><small>Pacific Pickleball Circuit · Powered by PPZ CMS</small></div></header>
+<div id="notice" class="notice" role="status">Connecting to tournament database…</div>
+<section id="auth"><h2>Organizer Sign In</h2><p class="muted">Use your organizer email. We'll send a secure sign-in link. Only authorized tournament owners can save their roster.</p><label>Email</label><input id="email" type="email" autocomplete="email" placeholder="organizer@example.com"><div class="actions"><button class="primary" id="login">Send Sign-In Link</button></div></section>
+<div id="app" hidden>
+<section><div class="actions" style="justify-content:space-between"><span class="tag" id="who"></span><button class="secondary" id="logout">Sign Out</button></div><h2>My Tournaments</h2><div class="grid"><div><label>Select tournament</label><select id="tournaments"></select></div><div><label>Mode</label><select id="mode"><option value="practice">Practice</option><option value="live">Live</option></select></div></div><div class="actions"><button id="saveMode" class="secondary">Save Mode</button></div><h2 style="margin-top:22px">Create Tournament</h2><div class="grid"><div><label>Tournament name</label><input id="tname" placeholder="PPC Test Tournament"></div><div><label>Starting mode</label><select id="newmode"><option value="practice">Practice</option><option value="live">Live</option></select></div></div><div class="actions"><button class="primary" id="create">Create & Save Tournament</button></div></section>
+<section><h2>Saved Doubles Teams</h2><div class="grid"><div><label>Skill Division</label><select id="skill"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div><div><label>Category</label><select id="category"><option>Men's Doubles</option><option>Women's Doubles</option><option>Mixed Doubles</option></select></div></div><p class="muted" id="count">Choose a tournament.</p><div id="teams"></div><div class="actions"><button id="add" class="primary">+ Add Team</button><button id="refresh" class="secondary">Refresh Saved Roster</button></div></section>
+<section id="teamForm" hidden><h2>Register Team</h2><div class="grid"><div><label>Team Name</label><input id="teamName" placeholder="Team name" maxlength="100"></div><div><label>Player 1 Full Name</label><input id="p1" placeholder="First and last name" maxlength="100"></div><div><label>Player 2 Full Name</label><input id="p2" placeholder="First and last name" maxlength="100"></div></div><div class="actions"><button class="primary" id="saveTeam">Save Team to Database</button><button class="secondary" id="cancel">Cancel</button></div><p class="muted">Phase 1: Basic team registration. Optional player profiles, photo uploads, and check-in will be added next.</p></section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.3/dist/umd/supabase.min.js"></script>
+<script>
+(()=>{
+'use strict';
+const URL='https://agcpfoythhlitntlnvaw.supabase.co',KEY='sb_publishable_oRV9f8iDRba7xhX84erMzw_nhqbhHpj';
+const $=id=>document.getElementById(id),notice=(message)=>{$('notice').textContent=message};
+if(!window.supabase){notice('Unable to load database client. Check your connection.');return}
+const db=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let user=null,current=null,divisions=[],busy=false;
+const err=e=>{console.error(e);notice(e?.message||String(e))};
+async function check(r){if(r.error)throw r.error;return r.data}
+async function loadTournaments(preferred){
+ const ts=await check(await db.from('ppc_tournaments').select('id,name,mode,status').order('created_at',{ascending:false}));
+ $('tournaments').replaceChildren();
+ ts.forEach(t=>{const o=new Option(t.name+' ['+t.mode+']',t.id);$('tournaments').add(o)});
+ if(preferred&&ts.some(t=>t.id===preferred))$('tournaments').value=preferred;
+ current=ts.find(t=>t.id===$('tournaments').value)||null;
+ $('mode').value=current?.mode||'practice';
+ await loadRoster();
+}
+async function ensureDivisions(){
+ if(!current)return;
+ divisions=await check(await db.from('ppc_divisions').select('id,name,skill_level,category').eq('tournament_id',current.id));
+}
+function activeDivision(){return divisions.find(d=>d.skill_level===$('skill').value&&(d.category||d.name)===$('category').value)}
+async function loadRoster(){
+ $('teams').replaceChildren();if(!current){$('count').textContent='Create or select a tournament first.';return}
+ await ensureDivisions();const d=activeDivision();
+ if(!d){$('count').textContent='No division configured yet. Add a team to initialize it.';return}
+ const teams=await check(await db.from('ppc_teams').select('id,team_name,player1_id,player2_id,checked_in_at').eq('division_id',d.id).order('id'));
+ const ids=[...new Set(teams.flatMap(t=>[t.player1_id,t.player2_id]))];
+ let people=[];if(ids.length)people=await check(await db.from('ppc_players').select('id,display_name').in('id',ids));
+ const names=new Map(people.map(p=>[p.id,p.display_name]));
+ $('count').textContent=teams.length+' / 8 teams registered · '+$('skill').value+' · '+$('category').value;
+ for(const t of teams){const el=document.createElement('div');el.className='team';const a=document.createElement('div'),b=document.createElement('b'),small=document.createElement('small');b.textContent=t.team_name||'Unnamed Team';small.textContent=(names.get(t.player1_id)||'Player 1')+' / '+(names.get(t.player2_id)||'Player 2');a.append(b,document.createElement('br'),small);el.append(a);$('teams').append(el)}
+}
+async function initializeDivisions(){
+ await ensureDivisions();
+ for(const skill of ['Beginner','Intermediate','Advanced'])for(const category of ["Men's Doubles","Women's Doubles","Mixed Doubles"]){
+  if(divisions.some(d=>d.skill_level===skill&&(d.category||d.name)===category))continue;
+  await check(await db.from('ppc_divisions').insert({tournament_id:current.id,name:category,skill_level:skill,category}));
+ }
+ await ensureDivisions();
+}
+async function refreshAuth(){
+ const {data:{user:u},error}=await db.auth.getUser();if(error&&error.name!=='AuthSessionMissingError')throw error;
+ user=u;$('auth').hidden=!!u;$('app').hidden=!u;
+ if(u){$('who').textContent=u.email||'Signed in';await loadTournaments(current?.id)}else{current=null;notice('Sign in to manage saved tournaments.')}
+}
+$('login').onclick=async()=>{try{const email=$('email').value.trim();if(!email)throw Error('Enter your email address.');await check(await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}}));notice('Check your email for a sign-in link. Return to this page after signing in.')}catch(e){err(e)}};
+$('logout').onclick=async()=>{try{await check(await db.auth.signOut());await refreshAuth()}catch(e){err(e)}};
+$('create').onclick=async()=>{try{const name=$('tname').value.trim();if(!name)throw Error('Enter a tournament name.');const data=await check(await db.from('ppc_tournaments').insert({name,owner_id:user.id,mode:$('newmode').value}).select('id').single());await loadTournaments(data.id);await initializeDivisions();await loadRoster();notice('Tournament created and saved in '+current.mode+' mode.')}catch(e){err(e)}};
+$('tournaments').onchange=async()=>{try{await loadTournaments($('tournaments').value)}catch(e){err(e)}};
+$('saveMode').onclick=async()=>{try{if(!current)throw Error('Select a tournament.');if(current.mode==='practice'&&$('mode').value==='live'&&!confirm('Switch this tournament to LIVE mode? Practice and Live records remain separate tournaments.'))return;await check(await db.from('ppc_tournaments').update({mode:$('mode').value}).eq('id',current.id));await loadTournaments(current.id);notice('Tournament mode saved.')}catch(e){err(e)}};
+$('skill').onchange=()=>loadRoster().catch(err);$('category').onchange=()=>loadRoster().catch(err);
+$('add').onclick=()=>{if(!current){notice('Create a tournament first.');return}$('teamForm').hidden=false;$('teamForm').scrollIntoView({behavior:'smooth'})};
+$('cancel').onclick=()=>{$('teamForm').hidden=true};
+$('refresh').onclick=()=>loadRoster().then(()=>notice('Roster refreshed from database.')).catch(err);
+$('saveTeam').onclick=async()=>{
+ if(busy)return;busy=true;$('saveTeam').disabled=true;
+ try{
+  if(!current)throw Error('Create a tournament first.');
+  const team_name=$('teamName').value.trim(),a=$('p1').value.trim(),b=$('p2').value.trim();
+  if(!team_name||!a||!b)throw Error('Team name and both player names are required.');
+  if(a.toLowerCase()===b.toLowerCase())throw Error('The two players must be different.');
+  await initializeDivisions();const d=activeDivision();if(!d)throw Error('Division unavailable.');
+  const existing=await check(await db.from('ppc_teams').select('id,team_name').eq('division_id',d.id));
+  if(existing.length>=8)throw Error('This category already has 8 teams.');
+  if(existing.some(t=>(t.team_name||'').toLowerCase()===team_name.toLowerCase()))throw Error('That team name already exists in this category.');
+  const saved=await check(await db.from('ppc_players').insert([{display_name:a,created_by:user.id},{display_name:b,created_by:user.id}]).select('id'));
+  await check(await db.from('ppc_teams').insert({division_id:d.id,team_name,player1_id:saved[0].id,player2_id:saved[1].id}));
+  $('teamName').value='';$('p1').value='';$('p2').value='';$('teamForm').hidden=true;await loadRoster();notice('✓ Team saved to the persistent PPC tournament database.');
+ }catch(e){err(e)}finally{busy=false;$('saveTeam').disabled=false}
+};
+db.auth.onAuthStateChange((event)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT')setTimeout(()=>refreshAuth().catch(err),0)});
+refreshAuth().then(()=>{if(user)notice('Connected · Persistent tournament roster ready.')}).catch(err);
+})();
+</script></body></html>

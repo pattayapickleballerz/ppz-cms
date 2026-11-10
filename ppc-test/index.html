@@ -256,7 +256,7 @@ button,select,input{font-size:max(16px,1em)}
 <div class="roster-player-heading">Player 1</div><div class="roster-grid"><label>First Name <input id="rosterPlayer1" placeholder="Alex" maxlength="60"></label><label>Last Name <input id="rosterLast1" placeholder="Morgan" maxlength="60"></label></div><div class="roster-player-heading">Player 2</div><div class="roster-grid"><label>First Name <input id="rosterPlayer2" placeholder="Jamie" maxlength="60"></label><label>Last Name <input id="rosterLast2" placeholder="Chen" maxlength="60"></label></div>
 <div class="roster-grid"><label><input type="checkbox" id="rosterPaid"> Paid</label><label><input type="checkbox" id="rosterChecked"> Checked In</label></div>
 <button type="button" id="rosterSave">Save Team</button><span id="rosterStatus" role="status"></span>
-<div id="rosterList"></div></details>
+<div id="rosterList"></div><button type="button" id="restoreDemoTeams" class="reset-small">Fill Empty Slots with NBA Demo Teams</button><p class="muted">NBA names are sample team labels. Players are fictional. Existing registrations are preserved.</p></details>
 <details class="setup-details"><summary>Connections</summary><p class="muted">Role access links and QR codes will appear here after secure multi-device access is implemented.</p><details><summary>Host</summary><p>Host authorization required. Link not active yet.</p></details><details><summary>Co-Host</summary><p>Authorized management access. Link not active yet.</p></details><details><summary>Scorekeeper</summary><p>Score submission link not active yet.</p></details><details><summary>Spectator / Display</summary><p>Read-only link not active yet.</p></details></details>
 <details class="setup-details"><summary>Demo Maintenance</summary><p class="muted">Scores are saved only in this browser. Resetting scores does not erase the registered team names.</p><button type="button" id="reset" class="reset-small">Reset local demo scores</button></details>
 </section>
@@ -278,7 +278,12 @@ const teamLabel=id=>teamRecord(id)?.name?.trim()||'Team '+((id.match(/Team (\d+)
 const playerParts=(id,index)=>{const p=teamRecord(id)?.players?.[index];if(p&&typeof p==='object')return {first:String(p.first||'').trim(),last:String(p.last||'').trim()};const name=typeof p==='string'?p.trim():'';const pos=name.indexOf(' ');return {first:pos<0?name:name.slice(0,pos),last:pos<0?'':name.slice(pos+1)}};
 const playerLabel=(id,index)=>playerParts(id,index).first||'Player '+(index+1);
 const playerFullName=(id,index)=>{const p=playerParts(id,index);return [p.first,p.last].filter(Boolean).join(' ')||'Player '+(index+1)};
+const nbaDemoTeams=["Lakers","Celtics","Warriors","Bulls","Knicks","Heat","Mavericks","Nuggets","Suns","Spurs","Bucks","Thunder","Rockets","Cavaliers","Clippers","Timberwolves","Magic","Pacers","Kings","Hawks","Grizzlies","Raptors","76ers","Trail Blazers","Pelicans","Pistons","Nets","Jazz","Hornets","Wizards"];
+const demoFirst=['Alex','Jordan','Taylor','Morgan','Casey','Jamie','Riley','Avery','Sam','Cameron','Drew','Robin','Skyler','Quinn','Parker','Reese'];
+const demoLast=['Smith','Lee','Brown','Garcia','Patel','Wilson','Chen','Davis','Martin','Kim','Johnson','Rivera','Clark','Young','Moore','Hall'];
+function makeDemoRoster(){const out={};let n=0;for(const s of SKILLS)for(const cat of CATEGORIES)for(const id of teams(s)[cat]){out[id]={name:nbaDemoTeams[n%nbaDemoTeams.length],players:[0,1].map(j=>({first:demoFirst[(n*2+j)%demoFirst.length],last:demoLast[(n*2+j+Math.floor(n/8))%demoLast.length]})),paid:false,checked:false,demo:true};n++}return out}
 function saveRoster(){localStorage.setItem(rosterKey,JSON.stringify(roster))}
+if(!Object.keys(roster).length){roster=makeDemoRoster();saveRoster()}
 
 const schedules=Object.fromEntries(SKILLS.map(s=>{const t=teams(s),waves=scheduleSkillBlock(t);validateSchedule(waves,t);return [s,waves]}));
 let skill=SKILLS[0],waveIndex=0,category=CATEGORIES[0];
@@ -395,6 +400,7 @@ $('rosterSave').onclick=()=>{
  if(teams(skill)[cat].some(other=>other!==id&&roster[other]?.name?.toLowerCase()===name.toLowerCase())){$('rosterStatus').textContent='Team name already exists in this category.';return}
  roster[id]={name,players:[{first:a,last:al},{first:b,last:bl}],paid:$('rosterPaid').checked,checked:$('rosterChecked').checked};saveRoster();$('rosterStatus').textContent='✓ Saved on this device';renderRosterList();render()
 };
+$('restoreDemoTeams').onclick=()=>{const samples=makeDemoRoster();let added=0;for(const [id,entry] of Object.entries(samples))if(!roster[id]){roster[id]=entry;added++}saveRoster();loadRosterForm();render();$('rosterStatus').textContent=added?'✓ Added '+added+' demo teams':'All slots already contain registrations'};
 loadRosterForm();
 function render(){
  const waves=schedules[skill],all=waves.flat();opt($('wave'),waves.map((_,i)=>'Wave '+(i+1)));$('wave').value=waveIndex;

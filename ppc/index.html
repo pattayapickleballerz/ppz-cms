@@ -22,8 +22,8 @@ section{margin:24px 0}.notice{color:#ffd58a}.empty{color:#b6c9d2;padding:20px 0}
 <div class="stats"><div class="stat"><strong id="total">72</strong>Matches in skill block</div><div class="stat"><strong id="complete">0</strong>Results entered</div><div class="stat"><strong id="current">1</strong>Current wave</div><div class="stat"><strong>11</strong>Courts available</div></div>
 <section><h2>11-Court Dashboard</h2><p class="notice">Score entry is for local functional testing. In production, scorekeepers will submit results for host approval. At 15 minutes, finish the rally; if tied, play a sudden-death point.</p><div class="courts" id="courts"></div></section>
 <section><h2>Category Standings</h2><label>Category <select id="category"></select></label><div id="standings"></div></section>
-<script type="module">
-import {SKILLS,CATEGORIES,scheduleSkillBlock,validateSchedule} from './scheduler.js';
+<script>
+const SKILLS=['Beginner','Intermediate','Advanced'];const CATEGORIES=["Men's Doubles","Women's Doubles","Mixed Doubles"];const COURTS=11;function roundRobin(ids){let a=[...ids],out=[];for(let round=1;round<=6;round++){for(let i=0;i<4;i++)out.push({round,teamA:a[i],teamB:a[7-i]});a.splice(1,0,a.pop())}return out}function scheduleSkillBlock(t){let pending=CATEGORIES.flatMap(category=>roundRobin(t[category]).map(m=>({...m,category}))),waves=[];while(pending.length){let used=new Set(),wave=[];for(let i=0;i<pending.length&&wave.length<COURTS;){let m=pending[i];if(used.has(m.teamA)||used.has(m.teamB)){i++;continue}wave.push({...m,court:wave.length+1});used.add(m.teamA);used.add(m.teamB);pending.splice(i,1)}waves.push(wave)}return waves}function validateSchedule(w,t){if(w.flat().length!==72)throw Error('Wrong match count');return true}
 const $=id=>document.getElementById(id);
 const teams=skill=>Object.fromEntries(CATEGORIES.map((c,j)=>[c,Array.from({length:8},(_,i)=>skill+' '+c+' Team '+(i+1))]));
 const schedules=Object.fromEntries(SKILLS.map(s=>{const t=teams(s),waves=scheduleSkillBlock(t);validateSchedule(waves,t);return [s,waves]}));

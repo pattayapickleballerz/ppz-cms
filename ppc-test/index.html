@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PPC Tournament — Court Dashboard</title>
+<title>PPC CMS — Tournament Live</title>
 <style>
 :root{font-family:system-ui,-apple-system,sans-serif;background:#071c31;color:#effcff;color-scheme:dark}
 *{box-sizing:border-box}body{margin:0;padding:18px;max-width:1500px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
@@ -16,12 +16,12 @@ button{cursor:pointer}button:hover{background:#21536a}button:disabled{opacity:.3
 .pill{font-size:.75rem;background:#244d5c;border-radius:6px;padding:4px 8px}
 table{width:100%;border-collapse:collapse}th,td{padding:9px;text-align:left;border-bottom:1px solid #305263}th{color:#9ce2d7}
 section{margin:24px 0}.notice{color:#ffd58a}.empty{color:#b6c9d2;padding:20px 0}
-</style></head><body>
-<header><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Local testing prototype — not connected to multi-device sync</small></div><button id="reset">Reset demo scores</button></header>
-<div class="controls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>
+.court{position:relative;min-height:260px;background:linear-gradient(150deg,#153a50,#071d2c);box-shadow:0 9px 24px #0005;border:1px solid #3c7b8a}.court h3{letter-spacing:.07em;text-transform:uppercase}.court .match{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:14px 0}.court .match>div{font-weight:750;text-align:center;overflow-wrap:anywhere}.court .match>div:nth-child(2){color:#b8f269;font-size:1.4rem;font-weight:900}.scoreline input{font-size:1.4rem;font-weight:800;width:72px}.scoreline button{background:#a7dc55;color:#092433;font-weight:800}.court .pill{display:inline-block;background:#1c655d}.navtabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}.navtabs a{color:#d8f8f3;text-decoration:none;background:#18435a;padding:10px 16px;border-radius:10px;border:1px solid #3e7886}.navtabs a:first-child{background:#a7dc55;color:#092433;font-weight:800}.brand{display:flex;align-items:center;gap:12px}.brandmark{border-radius:12px;background:linear-gradient(135deg,#37d0be,#b8f269);color:#092433;font-weight:1000;font-size:1.2rem;padding:13px} .courtlabel{color:#b8f269;font-size:.76rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase} @media(min-width:1100px){.courts{grid-template-columns:repeat(4,minmax(0,1fr))}} </style></head><body>
+<header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div><button id="reset">Reset demo scores</button></header>
+<nav class="navtabs"><a href="#courts">Live Courts</a><a href="#standings">Leaderboard</a><a href="#standings">Display Preview</a><a href="#settings">Setup</a></nav><div class="controls" id="settings"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>
 <div class="stats"><div class="stat"><strong id="total">72</strong>Matches in skill block</div><div class="stat"><strong id="complete">0</strong>Results entered</div><div class="stat"><strong id="current">1</strong>Current wave</div><div class="stat"><strong>11</strong>Courts available</div></div>
-<section><h2>11-Court Dashboard</h2><p class="notice">Score entry is for local functional testing. In production, scorekeepers will submit results for host approval. At 15 minutes, finish the rally; if tied, play a sudden-death point.</p><div class="courts" id="courts"></div></section>
-<section><h2>Category Standings</h2><label>Category <select id="category"></select></label><div id="standings"></div></section>
+<section id="courts"><h2>11-Court Dashboard</h2><p class="notice">Score entry is for local functional testing. In production, scorekeepers will submit results for host approval. At 15 minutes, finish the rally; if tied, play a sudden-death point.</p><div class="courts" id="courts"></div></section>
+<section id="standings"><h2>Category Standings</h2><label>Category <select id="category"></select></label><div id="standings"></div></section>
 <script>
 const SKILLS=['Beginner','Intermediate','Advanced'];const CATEGORIES=["Men's Doubles","Women's Doubles","Mixed Doubles"];const COURTS=11;function roundRobin(ids){let a=[...ids],out=[];for(let round=1;round<=6;round++){for(let i=0;i<4;i++)out.push({round,teamA:a[i],teamB:a[7-i]});a.splice(1,0,a.pop())}return out}function scheduleSkillBlock(t){let pending=CATEGORIES.flatMap(category=>roundRobin(t[category]).map(m=>({...m,category}))),waves=[];while(pending.length){let used=new Set(),wave=[];for(let i=0;i<pending.length&&wave.length<COURTS;){let m=pending[i];if(used.has(m.teamA)||used.has(m.teamB)){i++;continue}wave.push({...m,court:wave.length+1});used.add(m.teamA);used.add(m.teamB);pending.splice(i,1)}waves.push(wave)}return waves}function validateSchedule(w,t){if(w.flat().length!==72)throw Error('Wrong match count');return true}
 const $=id=>document.getElementById(id);
@@ -45,7 +45,7 @@ function render(){
   else{
    const p=document.createElement('p');p.className='muted';p.textContent=m.category+' · Round '+m.round;card.append(p);
    const names=document.createElement('div');names.className='match';
-   for(const name of [m.teamA,m.teamB]){const d=document.createElement('div');d.textContent=name;names.append(d)}card.append(names);
+   for(const name of [m.teamA,'VS',m.teamB]){const d=document.createElement('div');d.textContent=name;names.append(d)}card.append(names);
    const form=document.createElement('form');form.className='scoreline';
    const existing=results[key(m)]||[];
    const a=document.createElement('input'),b=document.createElement('input');

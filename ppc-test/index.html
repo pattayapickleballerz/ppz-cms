@@ -66,6 +66,16 @@ section{margin:24px 0}.notice{color:#ffd58a}.empty{color:#b6c9d2;padding:20px 0}
 .ppc-court-card .front-versus{text-align:center;font-weight:900;color:#d1e1eb;font-size:.8rem}
 .ppc-court-card .court-open{margin-top:11px!important;padding:11px!important;font-size:.93rem}
 .ppc-court-card .result-note{margin:9px 0 0;font-size:.75rem;color:#a6d9c7}
+</style><style>
+.ppc-court-card .front-match{grid-template-columns:minmax(0,1fr) 25px minmax(0,1fr)!important;padding:10px 7px!important}
+.ppc-court-card .front-team{display:flex;flex-direction:column;gap:9px;text-align:left!important}
+.ppc-court-card .front-player{display:flex;align-items:center;gap:7px;min-width:0}
+.ppc-court-card .front-team.right .front-player{flex-direction:row-reverse;text-align:right}
+.ppc-court-card .front-photo{flex:0 0 36px;width:36px;height:36px}
+.ppc-court-card .front-player-name{min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.ppc-court-card .front-first{font-size:clamp(.76rem,2.3vw,.95rem);font-weight:850;color:#fff;overflow-wrap:anywhere}
+.ppc-court-card .front-last{font-size:clamp(.61rem,1.8vw,.73rem);color:#b3c6d5;overflow-wrap:anywhere;margin-top:2px}
+.ppc-court-card .front-versus{color:#b8f269!important}
 </style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div><button id="reset">Reset demo scores</button></header>
 <nav class="navtabs"><a href="#courts">Live Courts</a><a href="#standings">Leaderboard</a><a href="#standings">Display Preview</a><a href="#settings">Setup</a></nav><div class="controls" id="settings"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>
@@ -129,11 +139,17 @@ function render(){
    const info=document.createElement('div');const meta=document.createElement('div');meta.className='card-meta';meta.textContent=skill+' · '+m.category;
    info.append(meta);const round=document.createElement('div');round.className='card-round';round.textContent='ROUND '+m.round;top.append(info,round);card.append(top);
    const match=document.createElement('div');match.className='front-match';
-   const makeTeam=(name)=>{const team=document.createElement('div');team.className='front-team';const photos=document.createElement('div');photos.className='front-photos';
-     for(let i=0;i<2;i++){const photo=document.createElement('div');photo.className='front-photo';photo.textContent='P'+(i+1);photo.title='Player photo placeholder — available after check-in';photos.append(photo)}
-     const label=document.createElement('div');label.className='front-team-name';label.textContent=name.replace(skill+' '+m.category+' ','');team.append(photos,label);return team};
+   const makeTeam=(name,right=false)=>{const team=document.createElement('div');team.className='front-team'+(right?' right':'');
+     const teamNum=Number((name.match(/Team (\\d+)$/)||[])[1])||1;
+     for(let i=0;i<2;i++){const player=document.createElement('div');player.className='front-player';
+       const photo=document.createElement('div');photo.className='front-photo';photo.textContent='P'+(i+1);photo.title='Player photo placeholder';
+       const labels=document.createElement('div');labels.className='front-player-name';
+       const first=document.createElement('span');first.className='front-first';first.textContent='Player '+(i+1);
+       const last=document.createElement('span');last.className='front-last';last.textContent='Team '+teamNum;
+       labels.append(first,last);player.append(photo,labels);team.append(player)}
+     return team};
    const vs=document.createElement('div');vs.className='front-versus';vs.textContent='VS';
-   match.append(makeTeam(m.teamA),vs,makeTeam(m.teamB));card.append(match);
+   match.append(makeTeam(m.teamA),vs,makeTeam(m.teamB,true));card.append(match);
    const existing=results[key(m)]||[];
    const open=document.createElement('button');open.className='court-open';open.type='button';open.textContent=existing.length?'Edit Result · '+existing.join('–'):'Open Court / Enter Score';open.onclick=()=>openScore(m,c);card.append(open);
    if(existing.length){const p=document.createElement('p');p.className='result-note';p.textContent='✓ Result saved locally · '+existing.join('–');card.append(p)}

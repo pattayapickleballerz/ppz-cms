@@ -54,7 +54,7 @@ function render(){
    const btn=document.createElement('button');btn.type='submit';btn.textContent='Save';
    form.append(a,dash,b,btn);form.addEventListener('submit',e=>{
     e.preventDefault();const x=Number(a.value),y=Number(b.value);
-    if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>11||y>11||x===y||Math.max(x,y)!==11){alert('Enter a non-tied final score with the winner reaching 11.');return}
+    if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>11||y>11||x===y){alert('Enter a non-tied final score (up to 11). Timed matches may finish below 11.');return}
     results[key(m)]=[x,y];persist();render();
    });card.append(form);
    if(existing.length){const p=document.createElement('p');p.className='pill';p.textContent='Saved locally · '+existing.join('–');card.append(p)}

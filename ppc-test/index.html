@@ -159,6 +159,10 @@ button,select,input{font-size:max(16px,1em)}
 #summaryStats .stat{min-width:0!important;min-height:62px!important;padding:9px 2px!important;gap:3px!important;border-radius:9px!important;align-items:center!important;justify-content:center!important;text-align:center!important}
 #summaryStats .stat strong{font-size:clamp(.92rem,3.3vw,1.5rem)!important;white-space:nowrap!important;text-align:center!important}
 #summaryStats .stat-label{font-size:clamp(.57rem,1.7vw,.75rem)!important;line-height:1.15!important;text-align:center!important}
+</style><style>
+/* Green court action signals that the final result has been saved. */
+.ppc-court-card .court-open.result-entered{background:#23834f!important;border:2px solid #5bd18a!important;color:#fff!important}
+.ppc-court-card .court-open.result-entered:hover{background:#2b9c60!important}
 </style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div></header>
 <nav class="navtabs" aria-label="PPC views"><button type="button" data-view="live" class="active" aria-pressed="true">Live</button><button type="button" data-view="leaderboard" aria-pressed="false">Leaderboard</button><button type="button" data-view="display" aria-pressed="false">Display</button><button type="button" data-view="setup" aria-pressed="false">Setup</button></nav><div class="controls" id="liveControls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>
@@ -257,7 +261,7 @@ function render(){
    const vs=document.createElement('div');vs.className='front-versus';vs.textContent='VS';
    match.append(makeTeam(m.teamA),vs,makeTeam(m.teamB,true));card.append(match);
    const existing=results[key(m)]||[];
-   const open=document.createElement('button');open.className='court-open';open.type='button';open.textContent=existing.length?'Edit Result · '+existing.join('–'):'Open Court / Enter Score';open.onclick=()=>openScore(m,c);card.append(open);
+   const open=document.createElement('button');open.className='court-open'+(existing.length?' result-entered':'');open.type='button';open.textContent=existing.length?'✓ Result Entered · '+existing.join('–'):'Open Court / Enter Score';open.onclick=()=>openScore(m,c);card.append(open);
    if(existing.length){const p=document.createElement('p');p.className='result-note';p.textContent='✓ Result saved locally · '+existing.join('–');card.append(p)}
   }$('courtCards').append(card)
  }$('courtDiagnostics').textContent='Court navigation ready · '+$('courtJump').children.length+' tiles · '+$('courtCards').children.length+' court cards';renderStandings();

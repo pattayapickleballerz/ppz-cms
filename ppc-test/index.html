@@ -93,6 +93,12 @@ section{margin:24px 0}.notice{color:#ffd58a}.empty{color:#b6c9d2;padding:20px 0}
 .court-jump-legend b{width:8px!important;height:8px!important}
 .court-jump-bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
 .court-jump-title{font-size:.75rem;font-weight:800;color:#b8cad6;letter-spacing:.06em}
+</style><style>
+/* 11-court optimized navigation: all eleven fit in one row on tablet/desktop;
+   on phones keep one swipeable row rather than wrapping. */
+.court-jump{display:grid!important;grid-template-columns:repeat(11,minmax(0,1fr))!important;gap:5px!important;width:100%!important;overflow:visible!important}
+.court-jump button{width:100%!important;min-width:0!important;height:42px!important;flex:none!important;padding:0!important;font-size:clamp(.7rem,1.5vw,1rem)!important}
+@media(max-width:600px){.court-jump{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding-bottom:5px;-webkit-overflow-scrolling:touch}.court-jump button{flex:0 0 42px!important;width:42px!important;scroll-snap-align:start}.court-jump::-webkit-scrollbar{height:3px}}
 </style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div><button id="reset">Reset demo scores</button></header>
 <nav class="navtabs"><a href="#courts">Live Courts</a><a href="#standings">Leaderboard</a><a href="#standings">Display Preview</a><a href="#settings">Setup</a></nav><div class="controls" id="settings"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>

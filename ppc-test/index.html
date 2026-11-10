@@ -37,10 +37,29 @@ section{margin:24px 0}.notice{color:#ffd58a}.empty{color:#b6c9d2;padding:20px 0}
 .keypad button{min-height:64px;background:#263447!important}
 .complete{background:#f3cb50!important;color:#192433!important}
 .scorehint{color:#e6a8a8!important}
-</style><style>.scoreteam.winner-highlight{border:3px solid #b8f269!important;background:#275b44!important;box-shadow:0 0 0 3px #b8f26955,0 0 25px #a8ed6866!important}.court-side.winner-highlight{background:#28654b!important;box-shadow:inset 0 0 0 4px #b8f269!important}.court-side.winner-highlight .player{color:#fff}.winpick.winner-highlight{background:#b8f269!important;color:#0c3024!important}.scoreteam.winner-highlight strong{color:#b8f269!important}</style></head><body>
+</style><style>.scoreteam.winner-highlight{border:3px solid #b8f269!important;background:#275b44!important;box-shadow:0 0 0 3px #b8f26955,0 0 25px #a8ed6866!important}.court-side.winner-highlight{background:#28654b!important;box-shadow:inset 0 0 0 4px #b8f269!important}.court-side.winner-highlight .player{color:#fff}.winpick.winner-highlight{background:#b8f269!important;color:#0c3024!important}.scoreteam.winner-highlight strong{color:#b8f269!important}</style><style>
+.wave-timer{background:#101e32;border:2px solid #34485d;border-radius:22px;padding:18px 22px;margin:18px 0 22px;text-align:center}
+.wave-top{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:.85rem;color:#b8f269;font-weight:800;letter-spacing:.07em}
+.wave-clock{font-family:system-ui,-apple-system,sans-serif;font-size:clamp(90px,18vw,210px);font-weight:900;letter-spacing:-.075em;line-height:1.1;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap;margin:10px 0 0}
+.wave-clock.warning{color:#ffd45b}.wave-clock.danger{color:#ff5e6d}
+.wave-label{font-size:.8rem;color:#a6b5c8;letter-spacing:.14em;font-weight:700}
+.wave-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:18px 0}
+.wave-actions button{min-width:100px;font-weight:800;padding:12px 16px}
+#timerToggle{background:#b8f269;color:#0d2638}
+.wave-footer{display:flex;justify-content:space-between;gap:12px;text-align:left;border-top:1px solid #35475e;padding-top:15px}
+.wave-footer>div:last-child{text-align:right}
+.wave-footer small{display:block;font-size:.7rem;letter-spacing:.08em;color:#a6b5c8}
+.wave-footer strong{font-size:clamp(18px,3.5vw,27px);font-variant-numeric:tabular-nums}
+@media(max-width:450px){.wave-timer{padding:12px}.wave-clock{font-size:clamp(76px,19vw,100px)}.wave-top{font-size:.7rem}}
+</style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div><button id="reset">Reset demo scores</button></header>
 <nav class="navtabs"><a href="#courts">Live Courts</a><a href="#standings">Leaderboard</a><a href="#standings">Display Preview</a><a href="#settings">Setup</a></nav><div class="controls" id="settings"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>
-<div class="stats"><div class="stat"><strong id="total">72</strong>Matches in skill block</div><div class="stat"><strong id="complete">0</strong>Results entered</div><div class="stat"><strong id="current">1</strong>Current wave</div><div class="stat"><strong>11</strong>Courts available</div></div>
+<section class="wave-timer" aria-label="Tournament wave timer">
+<div class="wave-top"><span id="timerWaveLabel">BEGINNER · WAVE 1</span><span>11 COURTS</span></div>
+<div id="waveClock" class="wave-clock" role="timer">15:00</div><div class="wave-label">WAVE COUNTDOWN</div>
+<div class="wave-actions"><button id="timerToggle" type="button">▶ Start</button><button id="timerReset" type="button">↺ Reset Wave</button><button id="timerSound" type="button">♪ Test Bell</button></div>
+<div class="wave-footer"><div><small>GAMES MANAGED</small><strong id="gamesManaged">0 / 216</strong></div><div><small>SESSION ELAPSED</small><strong id="sessionElapsed">00:00:00</strong></div></div>
+</section><div class="stats"><div class="stat"><strong id="total">72</strong>Matches in skill block</div><div class="stat"><strong id="complete">0</strong>Results entered</div><div class="stat"><strong id="current">1</strong>Current wave</div><div class="stat"><strong>11</strong>Courts available</div></div>
 <section id="courts"><h2>11-Court Dashboard</h2><p class="notice">Score entry is for local functional testing. In production, scorekeepers will submit results for host approval. At 15 minutes, finish the rally; if tied, play a sudden-death point.</p><div class="courts" id="courts"></div></section>
 <section id="standings"><h2>Category Standings</h2><label>Category <select id="category"></select></label><div id="standings"></div></section>
 <div id="scoremodal" class="scoremodal" role="dialog" aria-modal="true" aria-label="Court score entry"><div class="scorepanel"><div class="scoreheader"><h2 id="modalcourt">Court</h2><button id="closemodal" type="button">✕ Close</button></div><p id="modalcategory" class="muted"></p><p class="scorehint">Tap the yellow Win button, then enter only the losing team's score. For a timed game ending below 11, tap the team score boxes to enter both final scores. Ties require a sudden-death point.</p><div class="court-art"><div class="court-side"><div class="player"><span class="avatar">A</span><span id="playerA1">Team A</span></div><button class="winpick" id="winA" type="button">Win</button><div class="player"><span class="avatar">A</span><span id="playerA2">Partner</span></div></div><div class="court-mid"><span>VS</span></div><div class="court-side right"><div class="player"><span id="playerB1">Team B</span><span class="avatar">B</span></div><button class="winpick" id="winB" type="button">Win</button><div class="player"><span id="playerB2">Partner</span><span class="avatar">B</span></div></div></div><div class="scoreteams"><button class="scoreteam active" id="team0" type="button"><span id="name0"></span><strong id="score0">0</strong></button><button class="scoreteam" id="team1" type="button"><span id="name1"></span><strong id="score1">0</strong></button></div><div id="keypad" class="keypad"></div><button class="complete" id="completegame" type="button">Confirm Score</button><div class="scoreactions"><button id="clearscore" type="button">Clear Selected Score</button><button id="cancelmodal" type="button">Cancel</button></div></div></div><script>
@@ -52,12 +71,39 @@ let skill=SKILLS[0],waveIndex=0,category=CATEGORIES[0];
 const key=m=>[skill,m.category,m.round,m.teamA,m.teamB].join('|');
 let results={};try{results=JSON.parse(localStorage.getItem('ppc_demo_scores_v1')||'{}')}catch{}
 const persist=()=>localStorage.setItem('ppc_demo_scores_v1',JSON.stringify(results));
+
+// Local timer prototype. Timer state persists across reloads on this device only.
+const TIMER_LENGTH=15*60*1000;
+const timerStoreKey='ppc_wave_timer_v1';
+let timerState={running:false,remaining:TIMER_LENGTH,elapsed:0,updated:Date.now(),waveKey:'Beginner:0'};
+try{const saved=JSON.parse(localStorage.getItem(timerStoreKey)||'null');if(saved&&Number.isFinite(saved.remaining)&&Number.isFinite(saved.elapsed))timerState={...timerState,...saved}}catch{}
+let bellPlayed=false;
+function waveKey(){return skill+':'+waveIndex}
+function syncTimer(){
+ const now=Date.now(),delta=Math.max(0,now-(timerState.updated||now));
+ if(timerState.running){timerState.remaining=Math.max(0,timerState.remaining-delta);timerState.elapsed+=delta;if(timerState.remaining===0){timerState.running=false;if(!bellPlayed){bellPlayed=true;playBell()}}}
+ timerState.updated=now;
+}
+function saveTimer(){try{localStorage.setItem(timerStoreKey,JSON.stringify(timerState))}catch{}}
+function clockFmt(ms,withHours=false){const seconds=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=seconds%60;return withHours?[h,m,s].map(n=>String(n).padStart(2,'0')).join(':'):[m,s].map(n=>String(n).padStart(2,'0')).join(':')}
+function paintTimer(){
+ syncTimer();const clock=$('waveClock');clock.textContent=clockFmt(timerState.remaining);clock.classList.toggle('warning',timerState.remaining<=120000&&timerState.remaining>10000);clock.classList.toggle('danger',timerState.remaining<=10000);
+ $('sessionElapsed').textContent=clockFmt(timerState.elapsed,true);$('timerToggle').textContent=timerState.running?'Ⅱ Pause':'▶ Start';$('timerWaveLabel').textContent=skill.toUpperCase()+' · WAVE '+(waveIndex+1);
+ $('gamesManaged').textContent=Object.keys(results).length+' / 216';saveTimer();
+}
+function switchTimerWave(){syncTimer();timerState.running=false;timerState.remaining=TIMER_LENGTH;timerState.waveKey=waveKey();timerState.updated=Date.now();bellPlayed=false;paintTimer()}
+function playBell(){try{const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;const ctx=new Ctx();for(const [i,freq] of [660,880,660].entries()){const o=ctx.createOscillator(),g=ctx.createGain(),start=ctx.currentTime+i*.22;o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(.18,start+.025);g.gain.exponentialRampToValueAtTime(.0001,start+.4);o.connect(g);g.connect(ctx.destination);o.start(start);o.stop(start+.42)}setTimeout(()=>ctx.close(),1600)}catch{}}
+$('timerToggle').onclick=()=>{syncTimer();if(timerState.remaining<=0){alert('Wave time is over. Reset the wave timer to start again.');return}timerState.running=!timerState.running;timerState.updated=Date.now();paintTimer()};
+$('timerReset').onclick=()=>{if(confirm('Reset this wave to 15:00?'))switchTimerWave()};
+$('timerSound').onclick=playBell;
+setInterval(paintTimer,250);
+
 function opt(el,items){el.replaceChildren(...items.map((x,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=x;return o}))}
 opt($('skill'),SKILLS);opt($('category'),CATEGORIES);
 function render(){
  const waves=schedules[skill],all=waves.flat();opt($('wave'),waves.map((_,i)=>'Wave '+(i+1)));$('wave').value=waveIndex;
  $('total').textContent=all.length;$('complete').textContent=all.filter(m=>results[key(m)]).length;$('current').textContent=waveIndex+1;
- $('prev').disabled=waveIndex===0;$('next').disabled=waveIndex===waves.length-1;
+ paintTimer();$('prev').disabled=waveIndex===0;$('next').disabled=waveIndex===waves.length-1;
  const byCourt=new Map(waves[waveIndex].map(m=>[m.court,m]));$('courts').replaceChildren();
  for(let c=1;c<=11;c++){
   const m=byCourt.get(c),card=document.createElement('article');card.className='court ppc-court-card';
@@ -97,11 +143,11 @@ function renderStandings(){
  const body=document.createElement('tbody');
  list.forEach((r,i)=>{const row=document.createElement('tr');[i+1,r.team,r.played,r.points,r.points-r.against,r.wins].forEach(v=>{const td=document.createElement('td');td.textContent=String(v);row.append(td)});body.append(row)});table.append(body);$('standings').replaceChildren(table)
 }
-$('skill').onchange=e=>{skill=SKILLS[Number(e.target.value)];waveIndex=0;render()};
-$('wave').onchange=e=>{waveIndex=Number(e.target.value);render()};
+$('skill').onchange=e=>{skill=SKILLS[Number(e.target.value)];waveIndex=0;switchTimerWave();render()};
+$('wave').onchange=e=>{waveIndex=Number(e.target.value);switchTimerWave();render()};
 $('category').onchange=e=>{category=CATEGORIES[Number(e.target.value)];renderStandings()};
-$('prev').onclick=()=>{waveIndex=Math.max(0,waveIndex-1);render()};
-$('next').onclick=()=>{waveIndex=Math.min(schedules[skill].length-1,waveIndex+1);render()};
+$('prev').onclick=()=>{waveIndex=Math.max(0,waveIndex-1);switchTimerWave();render()};
+$('next').onclick=()=>{waveIndex=Math.min(schedules[skill].length-1,waveIndex+1);switchTimerWave();render()};
 $('reset').onclick=()=>{if(confirm('Clear local demo scores on this device?')){results={};persist();render()}};
-render();
+if(timerState.waveKey!==waveKey())switchTimerWave();render();
 </script></body></html>

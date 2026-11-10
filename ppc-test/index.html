@@ -187,7 +187,7 @@ button,select,input{font-size:max(16px,1em)}
 .scorepanel .scoreactions{margin-top:5px!important;gap:6px!important}
 .scorepanel .scoreactions button{padding:6px!important;font-size:.73rem!important}
 @media(max-height:700px){.scorepanel .court-art{height:112px!important}.scorepanel .keypad button{min-height:30px!important}.scorepanel .scoreteam strong{font-size:1.65rem!important}}
-</style><style>#waveReady{font-size:.74rem;color:#c6d4dd;align-self:center}#next.wave-ready{background:#23834f!important;color:white!important;border:1px solid #5bd18a!important;font-weight:800}</style></head><body>
+</style><style>#waveReady{font-size:.74rem;color:#c6d4dd;align-self:center}#next.wave-ready{background:#23834f!important;color:white!important;border:1px solid #5bd18a!important;font-weight:800}</style><style>#next:disabled{opacity:.38!important;cursor:not-allowed!important;filter:grayscale(.6)}</style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div></header>
 <nav class="navtabs" aria-label="PPC views"><button type="button" data-view="live" class="active" aria-pressed="true">Live</button><button type="button" data-view="leaderboard" aria-pressed="false">Leaderboard</button><button type="button" data-view="display" aria-pressed="false">Display</button><button type="button" data-view="setup" aria-pressed="false">Setup</button></nav><div class="controls" id="liveControls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next Wave</button><span id="waveReady" role="status" aria-live="polite"></span></div>
 <section id="timerSection" class="wave-timer" aria-label="Tournament wave timer">
@@ -261,7 +261,7 @@ opt($('skill'),SKILLS);opt($('category'),CATEGORIES);
 function render(){
  const waves=schedules[skill],all=waves.flat();opt($('wave'),waves.map((_,i)=>'Wave '+(i+1)));$('wave').value=waveIndex;
  const currentMatches=waves[waveIndex],skillScored=all.filter(m=>results[key(m)]).length,waveScored=currentMatches.filter(m=>results[key(m)]).length; $('total').textContent=skillScored+' / '+all.length;$('complete').textContent=waveScored+' / '+currentMatches.length;$('current').textContent=(waveIndex+1)+' / '+waves.length;$('courtUsage').textContent=currentMatches.length+' / 11';
- paintTimer();$('prev').disabled=waveIndex===0;$('next').disabled=waveIndex===waves.length-1;const ready=currentMatches.length>0&&waveScored===currentMatches.length;$('next').textContent=ready&&waveIndex<waves.length-1?'✓ Ready · Next Wave':'Next Wave';$('next').classList.toggle('wave-ready',ready&&waveIndex<waves.length-1);$('waveReady').textContent=ready?'✓ All '+currentMatches.length+' results entered':'Results '+waveScored+' / '+currentMatches.length;
+ paintTimer();$('prev').disabled=waveIndex===0;const ready=currentMatches.length>0&&waveScored===currentMatches.length;$('next').disabled=!ready||waveIndex===waves.length-1;$('next').textContent=ready&&waveIndex<waves.length-1?'✓ Ready · Next Wave':'Next Wave';$('next').classList.toggle('wave-ready',ready&&waveIndex<waves.length-1);$('waveReady').textContent=ready?'✓ All '+currentMatches.length+' results entered':'Results '+waveScored+' / '+currentMatches.length;
  const byCourt=new Map(waves[waveIndex].map(m=>[m.court,m]));$('courtCards').replaceChildren();$('courtJump').replaceChildren();
  for(let n=1;n<=11;n++){const match=byCourt.get(n),tile=document.createElement('button');tile.type='button';tile.textContent=String(n);tile.className=!match?'empty':results[key(match)]?'scored':'pending';tile.setAttribute('aria-label','Court '+n+': '+(!match?'no match':results[key(match)]?'score entered':'score pending'));tile.onclick=()=>{const target=document.getElementById('ppc-court-'+n);if(target)target.scrollIntoView({behavior:'smooth',block:'center'})};$('courtJump').append(tile)}
  for(let c=1;c<=11;c++){
@@ -318,7 +318,7 @@ $('skill').onchange=e=>{skill=SKILLS[Number(e.target.value)];waveIndex=0;switchT
 $('wave').onchange=e=>{waveIndex=Number(e.target.value);switchTimerWave();render()};
 $('category').onchange=e=>{category=CATEGORIES[Number(e.target.value)];renderStandings()};
 $('prev').onclick=()=>{waveIndex=Math.max(0,waveIndex-1);switchTimerWave();render()};
-$('next').onclick=()=>{const current=schedules[skill][waveIndex],missing=current.filter(m=>!results[key(m)]).length;if(missing&& !confirm(missing+' match result(s) still missing. Advance to the next wave anyway?'))return;waveIndex=Math.min(schedules[skill].length-1,waveIndex+1);switchTimerWave();render()};
+$('next').onclick=()=>{const current=schedules[skill][waveIndex];if(current.some(m=>!results[key(m)])||waveIndex>=schedules[skill].length-1)return;waveIndex++;switchTimerWave();render()};
 $('reset').onclick=()=>{if(confirm('Clear local demo scores on this device?')){results={};persist();render()}};
 if(timerState.waveKey!==waveKey())switchTimerWave();setView('live');try{render()}catch(err){$('courtDiagnostics').textContent='Court loading error: '+err.message;console.error(err)}
 </script></body></html>

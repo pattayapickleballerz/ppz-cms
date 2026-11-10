@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PPC Tournament — Court Dashboard</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;background:#071c31;color:#effcff;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;padding:18px;max-width:1500px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{margin:4px 0;color:#8ce8d6;font-size:1.7rem}h2{font-size:1.1rem}small,.muted{color:#a9c3cd}
+button,select,input{font:inherit;border:1px solid #4a6c79;background:#14364a;color:#fff;border-radius:8px;padding:10px}
+button{cursor:pointer}button:hover{background:#21536a}button:disabled{opacity:.35;cursor:not-allowed}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.controls label{display:flex;align-items:center;gap:7px}
+.stats{display:flex;gap:12px;flex-wrap:wrap}.stat{background:#123247;border:1px solid #2e5564;border-radius:12px;padding:12px;min-width:110px}
+.stat strong{display:block;font-size:1.5rem;color:#b8f269}.courts{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.court{background:#102e41;border:1px solid #326074;border-radius:14px;padding:14px}.court h3{margin:0 0 10px;color:#8ce8d6}
+.match{display:grid;gap:8px}.match .names{display:flex;justify-content:space-between;gap:8px}.match input{width:65px;text-align:center}
+.scoreline{display:flex;align-items:center;justify-content:center;gap:8px}
+.pill{font-size:.75rem;background:#244d5c;border-radius:6px;padding:4px 8px}
+table{width:100%;border-collapse:collapse}th,td{padding:9px;text-align:left;border-bottom:1px solid #305263}th{color:#9ce2d7}
+section{margin:24px 0}.notice{color:#ffd58a}.empty{color:#b6c9d2;padding:20px 0}
+</style></head><body>
+<header><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Local testing prototype — not connected to multi-device sync</small></div><button id="reset">Reset demo scores</button></header>
+<div class="controls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next wave</button></div>
+<div class="stats"><div class="stat"><strong id="total">72</strong>Matches in skill block</div><div class="stat"><strong id="complete">0</strong>Results entered</div><div class="stat"><strong id="current">1</strong>Current wave</div><div class="stat"><strong>11</strong>Courts available</div></div>
+<section><h2>11-Court Dashboard</h2><p class="notice">Score entry is for local functional testing. In production, scorekeepers will submit results for host approval. At 15 minutes, finish the rally; if tied, play a sudden-death point.</p><div class="courts" id="courts"></div></section>
+<section><h2>Category Standings</h2><label>Category <select id="category"></select></label><div id="standings"></div></section>
+<script>
+const SKILLS=['Beginner','Intermediate','Advanced'];const CATEGORIES=["Men's Doubles","Women's Doubles","Mixed Doubles"];const COURTS=11;function roundRobin(ids){let a=[...ids],out=[];for(let round=1;round<=6;round++){for(let i=0;i<4;i++)out.push({round,teamA:a[i],teamB:a[7-i]});a.splice(1,0,a.pop())}return out}function scheduleSkillBlock(t){let pending=CATEGORIES.flatMap(category=>roundRobin(t[category]).map(m=>({...m,category}))),waves=[];while(pending.length){let used=new Set(),wave=[];for(let i=0;i<pending.length&&wave.length<COURTS;){let m=pending[i];if(used.has(m.teamA)||used.has(m.teamB)){i++;continue}wave.push({...m,court:wave.length+1});used.add(m.teamA);used.add(m.teamB);pending.splice(i,1)}waves.push(wave)}return waves}function validateSchedule(w,t){if(w.flat().length!==72)throw Error('Wrong match count');return true}
+const $=id=>document.getElementById(id);
+const teams=skill=>Object.fromEntries(CATEGORIES.map((c,j)=>[c,Array.from({length:8},(_,i)=>skill+' '+c+' Team '+(i+1))]));
+const schedules=Object.fromEntries(SKILLS.map(s=>{const t=teams(s),waves=scheduleSkillBlock(t);validateSchedule(waves,t);return [s,waves]}));
+let skill=SKILLS[0],waveIndex=0,category=CATEGORIES[0];
+const key=m=>[skill,m.category,m.round,m.teamA,m.teamB].join('|');
+let results={};try{results=JSON.parse(localStorage.getItem('ppc_demo_scores_v1')||'{}')}catch{}
+const persist=()=>localStorage.setItem('ppc_demo_scores_v1',JSON.stringify(results));
+function opt(el,items){el.replaceChildren(...items.map((x,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=x;return o}))}
+opt($('skill'),SKILLS);opt($('category'),CATEGORIES);
+function render(){
+ const waves=schedules[skill],all=waves.flat();opt($('wave'),waves.map((_,i)=>'Wave '+(i+1)));$('wave').value=waveIndex;
+ $('total').textContent=all.length;$('complete').textContent=all.filter(m=>results[key(m)]).length;$('current').textContent=waveIndex+1;
+ $('prev').disabled=waveIndex===0;$('next').disabled=waveIndex===waves.length-1;
+ const byCourt=new Map(waves[waveIndex].map(m=>[m.court,m]));$('courts').replaceChildren();
+ for(let c=1;c<=11;c++){
+  const m=byCourt.get(c),card=document.createElement('article');card.className='court';
+  const h=document.createElement('h3');h.textContent='Court '+c;card.append(h);
+  if(!m){const p=document.createElement('p');p.className='empty';p.textContent='Available / waiting';card.append(p)}
+  else{
+   const p=document.createElement('p');p.className='muted';p.textContent=m.category+' · Round '+m.round;card.append(p);
+   const names=document.createElement('div');names.className='match';
+   for(const name of [m.teamA,m.teamB]){const d=document.createElement('div');d.textContent=name;names.append(d)}card.append(names);
+   const form=document.createElement('form');form.className='scoreline';
+   const existing=results[key(m)]||[];
+   const a=document.createElement('input'),b=document.createElement('input');
+   for(const [input,value] of [[a,existing[0]],[b,existing[1]]]){input.type='number';input.min=0;input.max=11;input.required=true;input.placeholder='0';input.value=value??''}
+   const dash=document.createElement('span');dash.textContent='–';
+   const btn=document.createElement('button');btn.type='submit';btn.textContent='Save';
+   form.append(a,dash,b,btn);form.addEventListener('submit',e=>{
+    e.preventDefault();const x=Number(a.value),y=Number(b.value);
+    if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>11||y>11||x===y||Math.max(x,y)!==11){alert('Enter a non-tied final score with the winner reaching 11.');return}
+    results[key(m)]=[x,y];persist();render();
+   });card.append(form);
+   if(existing.length){const p=document.createElement('p');p.className='pill';p.textContent='Saved locally · '+existing.join('–');card.append(p)}
+  }$('courts').append(card)
+ }renderStandings();
+}
+function renderStandings(){
+ const map=new Map(teams(skill)[category].map(t=>[t,{team:t,points:0,against:0,wins:0,played:0}]));
+ for(const m of schedules[skill].flat().filter(x=>x.category===category)){
+  const score=results[key(m)];if(!score)continue;
+  const a=map.get(m.teamA),b=map.get(m.teamB);
+  a.points+=score[0];a.against+=score[1];b.points+=score[1];b.against+=score[0];
+  a.wins+=Number(score[0]>score[1]);b.wins+=Number(score[1]>score[0]);a.played++;b.played++;
+ }
+ const list=[...map.values()].sort((a,b)=>b.points-a.points||((b.points-b.against)-(a.points-a.against))||b.wins-a.wins||a.team.localeCompare(b.team));
+ const table=document.createElement('table'),head=document.createElement('thead'),tr=document.createElement('tr');
+ for(const t of ['Rank','Team','Played','Points','Differential','Wins']){const th=document.createElement('th');th.textContent=t;tr.append(th)}head.append(tr);table.append(head);
+ const body=document.createElement('tbody');
+ list.forEach((r,i)=>{const row=document.createElement('tr');[i+1,r.team,r.played,r.points,r.points-r.against,r.wins].forEach(v=>{const td=document.createElement('td');td.textContent=String(v);row.append(td)});body.append(row)});table.append(body);$('standings').replaceChildren(table)
+}
+$('skill').onchange=e=>{skill=SKILLS[Number(e.target.value)];waveIndex=0;render()};
+$('wave').onchange=e=>{waveIndex=Number(e.target.value);render()};
+$('category').onchange=e=>{category=CATEGORIES[Number(e.target.value)];renderStandings()};
+$('prev').onclick=()=>{waveIndex=Math.max(0,waveIndex-1);render()};
+$('next').onclick=()=>{waveIndex=Math.min(schedules[skill].length-1,waveIndex+1);render()};
+$('reset').onclick=()=>{if(confirm('Clear local demo scores on this device?')){results={};persist();render()}};
+render();
+</script></body></html>

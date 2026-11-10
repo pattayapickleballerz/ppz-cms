@@ -193,12 +193,34 @@ button,select,input{font-size:max(16px,1em)}
 .local-clock strong{font-size:clamp(1.15rem,3vw,1.55rem);line-height:1.1;color:#b8f269;font-variant-numeric:tabular-nums;white-space:nowrap}
 .local-clock .clock-zone{font-size:.6rem;color:#a7bfcb}
 @media(max-width:600px){header{flex-wrap:nowrap!important;align-items:center!important}.brand{min-width:0!important;flex:1!important}.brand h1{font-size:clamp(.95rem,4vw,1.35rem)!important}.brand small{font-size:.55rem!important}.local-clock{min-width:78px;padding:6px;margin-left:0}}
+</style><style>
+/* Approved compact wave timer: same layout, less vertical whitespace. */
+#timerSection.wave-timer{padding:10px 14px!important;margin:10px 0 12px!important;border-radius:17px!important}
+#timerSection .wave-top{font-size:.72rem!important}
+#timerSection .wave-clock{font-size:clamp(92px,23vw,190px)!important;line-height:.93!important;letter-spacing:-.065em!important;margin:4px 0 0!important}
+#timerSection .wave-meta{display:grid;grid-template-columns:90px minmax(0,1fr) 90px;align-items:center;gap:2px;margin:0!important}
+#timerSection .wave-label{grid-column:2;text-align:center;font-size:.66rem!important;letter-spacing:.1em!important}
+#timerSection .local-clock{grid-column:3;min-width:0!important;width:90px!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important;border-radius:0!important;gap:0!important;align-items:flex-end!important}
+#timerSection .local-clock .clock-caption{font-size:.56rem!important}
+#timerSection .local-clock strong{font-size:.93rem!important;line-height:1.05!important}
+#timerSection .local-clock .clock-zone{display:none!important}
+#timerSection .wave-actions{gap:7px!important;margin:8px 0!important}
+#timerSection .wave-actions button{padding:8px 10px!important;min-width:0!important;font-size:.82rem!important}
+#timerSection .wave-footer{padding-top:8px!important}
+@media(max-width:600px){
+#timerSection.wave-timer{padding:9px 10px!important}
+#timerSection .wave-clock{font-size:clamp(75px,24vw,130px)!important}
+#timerSection .wave-meta{grid-template-columns:70px minmax(0,1fr) 70px}
+#timerSection .local-clock{width:70px!important}
+#timerSection .local-clock strong{font-size:.85rem!important}
+#timerSection .wave-actions button{font-size:.72rem!important;padding:7px 8px!important}
+}
 </style></head><body>
-<header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div><div id="localClock" class="local-clock" role="timer" aria-label="Device local time"><span class="clock-caption">LOCAL TIME</span><strong id="localClockTime">--:--</strong><span id="localClockZone" class="clock-zone"></span></div></header>
+<header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div></header>
 <nav class="navtabs" aria-label="PPC views"><button type="button" data-view="live" class="active" aria-pressed="true">Live</button><button type="button" data-view="leaderboard" aria-pressed="false">Leaderboard</button><button type="button" data-view="display" aria-pressed="false">Display</button><button type="button" data-view="setup" aria-pressed="false">Setup</button></nav><div class="controls" id="liveControls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next Wave</button><span id="waveReady" role="status" aria-live="polite"></span></div>
 <section id="timerSection" class="wave-timer" aria-label="Tournament wave timer">
 <div class="wave-top"><span id="timerWaveLabel">BEGINNER · WAVE 1</span><span>11 COURTS</span></div>
-<div id="waveClock" class="wave-clock" role="timer">15:00</div><div class="wave-label">WAVE COUNTDOWN</div>
+<div id="waveClock" class="wave-clock" role="timer">15:00</div><div class="wave-meta"><div class="wave-label">WAVE COUNTDOWN</div><div id="localClock" class="local-clock" role="timer" aria-label="Device local time"><span class="clock-caption">LOCAL TIME</span><strong id="localClockTime">--:--</strong><span id="localClockZone" class="clock-zone"></span></div></div>
 <div class="wave-actions"><button id="timerToggle" type="button">▶ Start</button><button id="timerReset" type="button">↺ Reset Timer</button><button id="timerSound" type="button">♪ Test Bell</button></div>
 <div class="wave-footer"><div><small>GAMES MANAGED</small><strong id="gamesManaged">0 / 216</strong></div><div><small>SESSION ELAPSED</small><strong id="sessionElapsed">00:00:00</strong></div></div>
 </section><div id="summaryStats" class="stats" aria-label="Tournament progress"><div class="stat"><strong id="total">0 / 72</strong><span class="stat-label">Skill matches scored</span></div><div class="stat"><strong id="complete">0 / 11</strong><span class="stat-label">Current wave results</span></div><div class="stat"><strong id="current">1 / 8</strong><span class="stat-label">Wave progress</span></div><div class="stat"><strong id="courtUsage">11 / 11</strong><span class="stat-label">Courts assigned</span></div></div>

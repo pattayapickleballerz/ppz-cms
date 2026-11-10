@@ -215,7 +215,16 @@ button,select,input{font-size:max(16px,1em)}
 #timerSection .local-clock strong{font-size:.85rem!important}
 #timerSection .wave-actions button{font-size:.72rem!important;padding:7px 8px!important}
 }
-</style><style>.scorepanel .court-side.team-only{align-items:center!important;justify-content:center!important;gap:13px!important;text-align:center!important}.court-team-name{font-size:clamp(.82rem,3vw,1.2rem)!important;color:#fff;line-height:1.2;overflow-wrap:anywhere}.scorepanel .court-side.team-only.right{text-align:center!important}</style></head><body>
+</style><style>.scorepanel .court-side.team-only{align-items:center!important;justify-content:center!important;gap:13px!important;text-align:center!important}.court-team-name{font-size:clamp(.82rem,3vw,1.2rem)!important;color:#fff;line-height:1.2;overflow-wrap:anywhere}.scorepanel .court-side.team-only.right{text-align:center!important}</style><style>
+.setup-details{border:1px solid #3c6173;border-radius:11px;margin:10px 0;padding:11px;background:#162f43}
+.setup-details>summary{cursor:pointer;font-weight:800;padding:4px 0;color:#b8f269}
+.setup-details details{padding:10px;border-bottom:1px solid #35536b}
+.roster-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0}
+.roster-grid label,.roster-field{display:flex;flex-direction:column;gap:5px;font-size:.78rem}
+.roster-grid input:not([type=checkbox]),.roster-grid select,.roster-field input{width:100%;min-width:0}
+.roster-row{display:block;width:100%;text-align:left;margin:5px 0;font-size:.76rem;padding:9px}
+#rosterStatus{margin-left:10px;color:#b8f269;font-size:.8rem}
+</style></head><body>
 <header><div class="brand"><div class="brandmark">PPC</div><div><small>PACIFIC PICKLEBALL CIRCUIT · Powered by PPZ CMS</small><h1>Live Tournament Dashboard</h1><small>Single-device test build · Original CMS-inspired court layout</small></div></div></header>
 <nav class="navtabs" aria-label="PPC views"><button type="button" data-view="live" class="active" aria-pressed="true">Live</button><button type="button" data-view="leaderboard" aria-pressed="false">Leaderboard</button><button type="button" data-view="display" aria-pressed="false">Display</button><button type="button" data-view="setup" aria-pressed="false">Setup</button></nav><div class="controls" id="liveControls"><label>Skill <select id="skill"></select></label><label>Wave <select id="wave"></select></label><button id="prev">Previous wave</button><button id="next">Next Wave</button><span id="waveReady" role="status" aria-live="polite"></span></div>
 <section id="timerSection" class="wave-timer" aria-label="Tournament wave timer">
@@ -228,7 +237,18 @@ button,select,input{font-size:max(16px,1em)}
 <div class="back-to-top-wrap" aria-label="After Court 11"><button class="back-to-top" id="backToTop" type="button">↑ Back to Top</button></div>
 <section id="standings"><h2>Category Standings</h2><label>Category <select id="category"></select></label><div id="standingsTable"></div></section>
 <section id="displayView" class="display-preview tab-hidden"><h2>PPC Display Preview</h2><p class="muted">Read-only local preview of the current wave. Multi-device sharing is not active yet.</p><div id="displayPreviewMatches" class="preview-list"></div></section>
-<section id="setupView" class="setup-panel tab-hidden"><h2>Demo Setup</h2><p class="muted">The tournament is fixed at 3 skill levels, 3 doubles categories, 8 teams per category, 6 rounds and 11 courts.</p><p class="muted">Demo scores are saved only in this browser. Resetting does not change the tournament schedule.</p><button type="button" id="reset" class="reset-small">Reset local demo scores</button></section>
+<section id="setupView" class="setup-panel tab-hidden"><h2>Tournament Setup</h2>
+<details class="setup-details"><summary>Players &amp; Teams</summary>
+<p class="muted">Register teams in each category. Names are saved locally on this device and appear on the court cards.</p>
+<div class="roster-grid"><label>Skill <select id="rosterSkill"></select></label><label>Category <select id="rosterCategory"></select></label><label>Team Slot <select id="rosterSlot"></select></label></div>
+<label class="roster-field">Team Name <input id="rosterTeamName" placeholder="e.g. Team Aces" maxlength="60"></label>
+<div class="roster-grid"><label>Player 1 <input id="rosterPlayer1" placeholder="First name" maxlength="60"></label><label>Player 2 <input id="rosterPlayer2" placeholder="First name" maxlength="60"></label></div>
+<div class="roster-grid"><label><input type="checkbox" id="rosterPaid"> Paid</label><label><input type="checkbox" id="rosterChecked"> Checked In</label></div>
+<button type="button" id="rosterSave">Save Team</button><span id="rosterStatus" role="status"></span>
+<div id="rosterList"></div></details>
+<details class="setup-details"><summary>Connections</summary><p class="muted">Role access links and QR codes will appear here after secure multi-device access is implemented.</p><details><summary>Host</summary><p>Host authorization required. Link not active yet.</p></details><details><summary>Co-Host</summary><p>Authorized management access. Link not active yet.</p></details><details><summary>Scorekeeper</summary><p>Score submission link not active yet.</p></details><details><summary>Spectator / Display</summary><p>Read-only link not active yet.</p></details></details>
+<details class="setup-details"><summary>Demo Maintenance</summary><p class="muted">Scores are saved only in this browser. Resetting scores does not erase the registered team names.</p><button type="button" id="reset" class="reset-small">Reset local demo scores</button></details>
+</section>
 <div id="scoremodal" class="scoremodal" role="dialog" aria-modal="true" aria-label="Court score entry"><div class="scorepanel"><div class="scoreheader"><h2 id="modalcourt">Court</h2><button id="closemodal" type="button">✕ Close</button></div><p id="modalcategory" class="muted"></p><p class="scorehint">Tap Win, enter the losing score, then confirm. Timed game? Tap scores to enter both.</p><div class="court-art"><div class="court-side team-only"><strong id="courtTeamA" class="court-team-name">Team A</strong><button class="winpick" id="winA" type="button">Win</button></div><div class="court-mid"><span>VS</span></div><div class="court-side right team-only"><strong id="courtTeamB" class="court-team-name">Team B</strong><button class="winpick" id="winB" type="button">Win</button></div></div><div class="scoreteams"><button class="scoreteam active" id="team0" type="button"><span id="name0"></span><strong id="score0">0</strong></button><button class="scoreteam" id="team1" type="button"><span id="name1"></span><strong id="score1">0</strong></button></div><div id="keypad" class="keypad"></div><button class="complete" id="completegame" type="button">Confirm Score</button><div class="scoreactions"><button id="clearscore" type="button">Clear Selected Score</button><button id="cancelmodal" type="button">Cancel</button></div></div></div><script>
 const SKILLS=['Beginner','Intermediate','Advanced'];const CATEGORIES=["Men's Doubles","Women's Doubles","Mixed Doubles"];const COURTS=11;function roundRobin(ids){let a=[...ids],out=[];for(let round=1;round<=6;round++){for(let i=0;i<4;i++)out.push({round,teamA:a[i],teamB:a[7-i]});a.splice(1,0,a.pop())}return out}function scheduleSkillBlock(t){let pending=CATEGORIES.flatMap(category=>roundRobin(t[category]).map(m=>({...m,category}))),waves=[];while(pending.length){let used=new Set(),wave=[];for(let i=0;i<pending.length&&wave.length<COURTS;){let m=pending[i];if(used.has(m.teamA)||used.has(m.teamB)){i++;continue}wave.push({...m,court:wave.length+1});used.add(m.teamA);used.add(m.teamB);pending.splice(i,1)}waves.push(wave)}return waves}function validateSchedule(w,t){if(w.flat().length!==72)throw Error('Wrong match count');return true}
 const $=id=>document.getElementById(id);
@@ -299,6 +319,28 @@ document.querySelectorAll('.navtabs button').forEach(b=>b.onclick=()=>setView(b.
 
 function opt(el,items){el.replaceChildren(...items.map((x,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=x;return o}))}
 opt($('skill'),SKILLS);opt($('category'),CATEGORIES);
+function rosterTeamId(){return teams(SKILLS[Number($('rosterSkill').value)])[CATEGORIES[Number($('rosterCategory').value)]][Number($('rosterSlot').value)]}
+function loadRosterForm(){
+ const id=rosterTeamId(),r=roster[id]||{};
+ $('rosterTeamName').value=r.name||'';$('rosterPlayer1').value=r.players?.[0]||'';$('rosterPlayer2').value=r.players?.[1]||'';
+ $('rosterPaid').checked=!!r.paid;$('rosterChecked').checked=!!r.checked;renderRosterList()
+}
+function renderRosterList(){
+ const s=SKILLS[Number($('rosterSkill').value)],cat=CATEGORIES[Number($('rosterCategory').value)];
+ const list=$('rosterList');list.replaceChildren();
+ teams(s)[cat].forEach((id,i)=>{const b=document.createElement('button');b.type='button';b.className='roster-row';b.textContent=(i+1)+'. '+teamLabel(id)+' · '+playerLabel(id,0)+' / '+playerLabel(id,1)+(roster[id]?.paid?' · Paid':'')+(roster[id]?.checked?' · Checked in':'');b.onclick=()=>{$('rosterSlot').value=String(i);loadRosterForm()};list.append(b)})
+}
+opt($('rosterSkill'),SKILLS);opt($('rosterCategory'),CATEGORIES);opt($('rosterSlot'),Array.from({length:8},(_,i)=>'Team '+(i+1)));
+for(const id of ['rosterSkill','rosterCategory','rosterSlot'])$(id).onchange=loadRosterForm;
+$('rosterSave').onclick=()=>{
+ const id=rosterTeamId(),name=$('rosterTeamName').value.trim(),a=$('rosterPlayer1').value.trim(),b=$('rosterPlayer2').value.trim();
+ if(!name||!a||!b){$('rosterStatus').textContent='Enter a team name and both player names.';return}
+ if(a.toLowerCase()===b.toLowerCase()){$('rosterStatus').textContent='Choose two different players.';return}
+ const skill=SKILLS[Number($('rosterSkill').value)],cat=CATEGORIES[Number($('rosterCategory').value)];
+ if(teams(skill)[cat].some(other=>other!==id&&roster[other]?.name?.toLowerCase()===name.toLowerCase())){$('rosterStatus').textContent='Team name already exists in this category.';return}
+ roster[id]={name,players:[a,b],paid:$('rosterPaid').checked,checked:$('rosterChecked').checked};saveRoster();$('rosterStatus').textContent='✓ Saved on this device';renderRosterList();render()
+};
+loadRosterForm();
 function render(){
  const waves=schedules[skill],all=waves.flat();opt($('wave'),waves.map((_,i)=>'Wave '+(i+1)));$('wave').value=waveIndex;
  const currentMatches=waves[waveIndex],skillScored=all.filter(m=>results[key(m)]).length,waveScored=currentMatches.filter(m=>results[key(m)]).length; $('total').textContent=skillScored+' / '+all.length;$('complete').textContent=waveScored+' / '+currentMatches.length;$('current').textContent=(waveIndex+1)+' / '+waves.length;$('courtUsage').textContent=currentMatches.length+' / 11';
